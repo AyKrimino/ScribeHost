@@ -6,26 +6,46 @@ import (
 	"log"
 	"os"
 
+	"github.com/AyKrimino/ScribeHost/controller"
 	"github.com/AyKrimino/ScribeHost/middleware"
+	"github.com/AyKrimino/ScribeHost/repository"
+	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
+	var err error
+
 	setupLoggerOutput()
 
-	err := godotenv.Load()
+	err = godotenv.Load()
 	if err != nil {
 		log.Fatalf("Failed to load .env file: %v", err)
 	}
 
-	router := gin.New()
+	err = repository.InitDB()
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
 
+	// repositories
+	userRepo := repository.NewUserRepository()
+
+	// services
+	userService := service.NewUserService(userRepo)
+
+	// controllers
+	userController := controller.NewUserController(userService)
+
+	router := gin.New()
 	router.Use(
 		gin.Recovery(),
 		middleware.Logger(),
 	)
+
+	router.POST("/users", userController.CreateUser)
 
 	port := os.Getenv("PORT")
 	if port == "" {
