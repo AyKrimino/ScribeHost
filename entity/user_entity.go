@@ -23,6 +23,9 @@ type User struct {
 	ResetToken       string     `gorm:"type:varchar(100)" json:"-"`
 	ResetTokenExpiry *time.Time `json:"reset_token_expiry"`
 
+	RefreshToken       string     `gorm:"type:text" json:"-"`
+	RefreshTokenExpiry *time.Time `json:"-"`
+
 	// Timestamps
 	LastLogin *time.Time `json:"last_login,omitempty"`
 

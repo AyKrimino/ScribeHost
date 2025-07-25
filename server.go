@@ -9,6 +9,7 @@ import (
 	"github.com/AyKrimino/ScribeHost/controller"
 	"github.com/AyKrimino/ScribeHost/middleware"
 	"github.com/AyKrimino/ScribeHost/repository"
+	"github.com/AyKrimino/ScribeHost/routes"
 	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -32,12 +33,15 @@ func main() {
 
 	// repositories
 	userRepo := repository.NewUserRepository()
+	authRepo := repository.NewAuthRepository()
 
 	// services
 	userService := service.NewUserService(userRepo)
+	authService := service.NewAuthService(authRepo)
 
 	// controllers
 	userController := controller.NewUserController(userService)
+	authController := controller.NewAuthController(authService)
 
 	router := gin.New()
 	router.Use(
@@ -45,7 +49,7 @@ func main() {
 		middleware.Logger(),
 	)
 
-	router.POST("/users", userController.CreateUser)
+	routes.SetupRoutes(router, userController, authController)
 
 	port := os.Getenv("PORT")
 	if port == "" {
