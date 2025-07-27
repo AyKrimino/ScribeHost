@@ -26,7 +26,6 @@ type LoginResponseDto struct {
 	AccessToken  string              `json:"access_token"`
 	RefreshToken string              `json:"refresh_token"`
 	TokenType    string              `json:"token_type"` // Bearer token
-	ExpiresIn    int                 `json:"expires_in"` // in seconds
 	User         RegisterResponseDto `json:"user"`
 	LoggedInAt   time.Time           `json:"logged_in_at"`
 }

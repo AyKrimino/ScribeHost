@@ -10,19 +10,20 @@ import (
 type AuthRepository interface {
 	CreateUser(user entity.User) (*entity.User, error)
 	FindUserByEmail(email string) (*entity.User, error)
+	Update(user entity.User) error
 }
 
-type authRepositoy struct {
+type authRepository struct {
 	db *gorm.DB
 }
 
 func NewAuthRepository() AuthRepository {
-	return &authRepositoy{
+	return &authRepository{
 		db: DB,
 	}
 }
 
-func (r *authRepositoy) CreateUser(user entity.User) (*entity.User, error) {
+func (r *authRepository) CreateUser(user entity.User) (*entity.User, error) {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&user).Error; err != nil {
 			return fmt.Errorf("failed to create user: %w", err)
@@ -42,7 +43,7 @@ func (r *authRepositoy) CreateUser(user entity.User) (*entity.User, error) {
 	return &createdUser, nil
 }
 
-func (r *authRepositoy) FindUserByEmail(email string) (*entity.User, error) {
+func (r *authRepository) FindUserByEmail(email string) (*entity.User, error) {
 	var (
 		user entity.User
 		err  error
@@ -57,4 +58,11 @@ func (r *authRepositoy) FindUserByEmail(email string) (*entity.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (r *authRepository) Update(user entity.User) error {
+	if err := r.db.Save(user).Error; err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	return nil
 }

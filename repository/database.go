@@ -17,7 +17,7 @@ func InitDB() error {
 
 	err = godotenv.Load()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load .env file: %w", err)
 	}
 
 	var (
@@ -39,15 +39,16 @@ func InitDB() error {
 
 	DB, err = gorm.Open("mysql", dsn)
 	if err != nil {
-		return fmt.Errorf("Failed to connect database: %v", err)
+		return fmt.Errorf("failed to connect database: %w", err)
 	}
 
 	dbResult := DB.AutoMigrate(
 		&entity.User{},
 		&entity.Profile{},
+		&entity.RefreshToken{},
 	)
 	if dbResult.Error != nil {
-		return fmt.Errorf("Failed to migrate database: %v", dbResult.Error)
+		return fmt.Errorf("failed to migrate database: %w", dbResult.Error)
 	}
 
 	return nil

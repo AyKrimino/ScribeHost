@@ -3,13 +3,14 @@ package errors
 import "fmt"
 
 type ObjectAlreadyExistsError struct {
-	ObjectType string
-	Identifier string
+	ObjectType      string
+	Identifier      string
+	IdentifierValue string
 }
 
 func (e ObjectAlreadyExistsError) Error() string {
-	if e.ObjectType != "" && e.Identifier != "" {
-		return fmt.Sprintf("%s already exists: %s", e.ObjectType, e.Identifier)
+	if e.ObjectType != "" && e.Identifier != "" && e.IdentifierValue != "" {
+		return fmt.Sprintf("%s already exists: %s %s", e.ObjectType, e.Identifier, e.IdentifierValue)
 	}
 	if e.ObjectType != "" {
 		return fmt.Sprintf("%s already exists", e.ObjectType)
@@ -22,9 +23,10 @@ func IsObjectAlreadyExists(err error) bool {
 	return ok
 }
 
-func NewObjectAlreadyExistsError(objectType, identifier string) ObjectAlreadyExistsError {
+func NewObjectAlreadyExistsError(objectType, identifier, identifierValue string) ObjectAlreadyExistsError {
 	return ObjectAlreadyExistsError{
-		ObjectType: objectType,
-		Identifier: identifier,
+		ObjectType:      objectType,
+		Identifier:      identifier,
+		IdentifierValue: identifierValue,
 	}
 }

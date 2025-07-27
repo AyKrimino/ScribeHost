@@ -34,10 +34,11 @@ func main() {
 	// repositories
 	userRepo := repository.NewUserRepository()
 	authRepo := repository.NewAuthRepository()
+	refreshTokenRepo := repository.NewRefreshTokenRepository()
 
 	// services
 	userService := service.NewUserService(userRepo)
-	authService := service.NewAuthService(authRepo)
+	authService := service.NewAuthService(authRepo, refreshTokenRepo)
 
 	// controllers
 	userController := controller.NewUserController(userService)
