@@ -15,7 +15,7 @@ import (
 type AuthService interface {
 	Register(req dto.RegisterRequestDto) (*dto.RegisterResponseDto, error)
 	Login(req dto.LoginRequestDto, userAgent, clientIP string) (*dto.LoginResponseDto, error)
-	RefreshToken(req dto.RefreshTokenRequestDto) (*dto.RefreshTokenResponseDto, error)
+	RefreshToken(req dto.RefreshTokenRequestDto, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error)
 }
 
 type authService struct {
@@ -82,7 +82,7 @@ func (s *authService) Login(req dto.LoginRequestDto, userAgent, clientIP string)
 	}
 
 	refreshTokenString := rand.Text()
-	refreshTokenHashed, err := helper.HashPassword(refreshTokenString)
+	refreshTokenHashed, err := helper.HashToken(refreshTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash refresh token: %w", err)
 	}
@@ -120,6 +120,43 @@ func (s *authService) Login(req dto.LoginRequestDto, userAgent, clientIP string)
 	return &res, nil
 }
 
-func (s *authService) RefreshToken(req dto.RefreshTokenRequestDto) (*dto.RefreshTokenResponseDto, error) {
-	return nil, nil
+func (s *authService) RefreshToken(req dto.RefreshTokenRequestDto, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error) {
+	refreshTokenString := req.RefreshToken
+
+	hashed, err := helper.HashToken(refreshTokenString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash the refresh token: %w", err)
+	}
+
+	refreshToken, err := s.refreshTokenRepo.FindByTokenHash(hashed)
+	if err != nil {
+		return nil, fmt.Errorf("failed to lookup refresh token: %w", err)
+	}
+	if refreshToken == nil {
+		return nil, errors.NewInvalidTokenError("refreshToken", "refresh token not found")
+	}
+
+	if !refreshToken.IsValid() {
+		return nil, errors.NewInvalidTokenError("refreshToken", "refresh token expired")
+	}
+
+	user, err := s.authRepo.FindUserById(refreshToken.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve user associated with refresh token: %w", err)
+	}
+	if user == nil {
+		return nil, errors.NewInvalidTokenError("refreshToken", "associated user not found")
+	}
+
+	accessTokenString, err := helper.CreateToken(user.ID, user.Email, user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create token: %w", err)
+	}
+
+	res := dto.RefreshTokenResponseDto{
+		AccessToken: accessTokenString,
+		TokenType:   "Bearer",
+	}
+
+	return &res, nil
 }

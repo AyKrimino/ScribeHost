@@ -9,6 +9,7 @@ import (
 
 type RefreshTokenRepository interface {
 	Create(token *entity.RefreshToken) error
+	FindByTokenHash(tokenHash string) (*entity.RefreshToken, error)
 }
 
 type refreshTokenRepository struct {
@@ -29,4 +30,17 @@ func (r *refreshTokenRepository) Create(token *entity.RefreshToken) error {
 		return fmt.Errorf("failed to create refresh token: %w", err)
 	}
 	return nil
+}
+
+func (r *refreshTokenRepository) FindByTokenHash(tokenHash string) (*entity.RefreshToken, error) {
+	var token entity.RefreshToken
+
+	err := r.db.Where("token_hash = ?", tokenHash).First(&token).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find refresh token by hash %s: %w", tokenHash, err)
+	}
+	return &token, nil
 }

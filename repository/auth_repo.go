@@ -10,6 +10,7 @@ import (
 type AuthRepository interface {
 	CreateUser(user entity.User) (*entity.User, error)
 	FindUserByEmail(email string) (*entity.User, error)
+	FindUserById(id uint) (*entity.User, error)
 	Update(user entity.User) error
 }
 
@@ -65,4 +66,20 @@ func (r *authRepository) Update(user entity.User) error {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 	return nil
+}
+
+func (r *authRepository) FindUserById(id uint) (*entity.User, error) {
+	var (
+		user entity.User
+		err  error
+	)
+
+	err = r.db.Where("id = ?", id).Preload("Profile").First(&user).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find user by id %d: %w", id, err)
+	}
+	return &user, nil
 }

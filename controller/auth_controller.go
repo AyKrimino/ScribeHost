@@ -122,4 +122,44 @@ func (c *authController) Login(ctx *gin.Context) {
 }
 
 func (c *authController) RefreshToken(ctx *gin.Context) {
+	var (
+		req dto.RefreshTokenRequestDto
+		res *dto.RefreshTokenResponseDto
+		err error
+	)
+
+	err = ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Printf("refresh binding error: %v", err)
+
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid Input",
+			"details": "The request data is invalid. Please check your input and try again.",
+		})
+		return
+	}
+
+	userAgent := ctx.Request.UserAgent()
+	clientIP := ctx.ClientIP()
+
+	res, err = c.authService.RefreshToken(req, userAgent, clientIP)
+	if err != nil {
+		log.Printf("Refresh error: %v", err)
+
+		if errors.IsInvalidTokenError(err) {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"error":   "Invalid Token",
+				"message": "The provided refresh token is invalid or expired.",
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Refresh failed",
+			"message": "An internal error occured. Please try again later.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
 }

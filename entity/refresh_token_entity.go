@@ -12,3 +12,7 @@ type RefreshToken struct {
 	UserAgent string    `gorm:"type:text"`
 	IpAddress string    `gorm:"type:varchar(45)"`
 }
+
+func (t *RefreshToken) IsValid() bool {
+	return t.Expiry.After(time.Now().UTC())
+}

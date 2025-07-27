@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"time"
 
 	"github.com/AyKrimino/ScribeHost/types"
@@ -25,4 +27,17 @@ func CreateToken(userId uint, email string, role types.RoleType) (string, error)
 	}
 
 	return tokenString, nil
+}
+
+func HashToken(token string) (string, error) {
+	hasher := sha256.New()
+
+	_, err := hasher.Write([]byte(token))
+	if err != nil {
+		return "", err
+	}
+
+	hashedBytes := hasher.Sum(nil)
+
+	return fmt.Sprintf("%x", hashedBytes), nil
 }
