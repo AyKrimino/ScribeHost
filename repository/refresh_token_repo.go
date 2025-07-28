@@ -48,9 +48,27 @@ func (r *refreshTokenRepository) FindByTokenHash(tokenHash string) (*entity.Refr
 }
 
 func (r *refreshTokenRepository) Revoke(tokenHash string) error {
+	err := r.db.Model(&entity.RefreshToken{}).
+		Where("token_hash = ?", tokenHash).
+		Updates(map[string]interface{}{
+			"is_revoked": true,
+		}).
+		Error
+	if err != nil {
+		return fmt.Errorf("failed to revoke refresh token with hash %s: %w", tokenHash, err)
+	}
 	return nil
 }
 
 func (r *refreshTokenRepository) RevokeAllForUser(userId uint) error {
+	err := r.db.Model(&entity.RefreshToken{}).
+		Where("user_id = ? AND is_revoked = ?", userId, false).
+		Updates(map[string]interface{}{
+			"is_revoked": true,
+		}).
+		Error
+	if err != nil {
+		return fmt.Errorf("failed to revoke refresh tokens for user %d: %w", userId, err)
+	}
 	return nil
 }

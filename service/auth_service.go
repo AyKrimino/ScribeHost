@@ -16,6 +16,7 @@ type AuthService interface {
 	Register(req dto.RegisterRequestDto) (*dto.RegisterResponseDto, error)
 	Login(req dto.LoginRequestDto, userAgent, clientIP string) (*dto.LoginResponseDto, error)
 	RefreshToken(refreshTokenString, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error)
+	Logout(userID uint) (*dto.LogoutResponseDto, error)
 }
 
 type authService struct {
@@ -180,4 +181,15 @@ func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP strin
 	}
 
 	return &res, nil
+}
+
+func (s *authService) Logout(userID uint) (*dto.LogoutResponseDto, error) {
+	err := s.refreshTokenRepo.RevokeAllForUser(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to logout: unable to revoke session tokens")
+	}
+
+	return &dto.LogoutResponseDto{
+		Msg: "Successfully logged out",
+	}, nil
 }

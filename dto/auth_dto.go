@@ -38,6 +38,10 @@ type RefreshTokenResponseDto struct {
 	TokenType      string        `json:"token_type"`
 }
 
+type LogoutResponseDto struct {
+	Msg string `json:"message"`
+}
+
 func (req *RegisterRequestDto) ToEntity() entity.User {
 	return entity.User{
 		Email: req.Email,

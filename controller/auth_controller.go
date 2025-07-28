@@ -14,6 +14,7 @@ type AuthController interface {
 	Register(ctx *gin.Context)
 	Login(ctx *gin.Context)
 	RefreshToken(ctx *gin.Context)
+	Logout(ctx *gin.Context)
 }
 
 type authController struct {
@@ -130,7 +131,7 @@ func (c *authController) Login(ctx *gin.Context) {
 		refreshTokenMaxAge = 0
 	}
 
-	ctx.SetCookie("refreshToken", res.RawRefreshToken, refreshTokenMaxAge, "/api/v1/auth/refresh", "", true, true)
+	ctx.SetCookie("refreshToken", res.RawRefreshToken, refreshTokenMaxAge, "/", "", true, true)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"details": "Login successful",
@@ -194,4 +195,39 @@ func (c *authController) RefreshToken(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"details": "Access token refreshed successfully",
 	})
+}
+
+func (c *authController) Logout(ctx *gin.Context) {
+	userIDAny, exists := ctx.Get("userID")
+	if !exists {
+		log.Println("userID not found in context")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal server error",
+		})
+		return
+	}
+
+	userID, ok := userIDAny.(uint)
+	if !ok {
+		log.Println("userID in context is not uint")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal server error",
+		})
+		return
+	}
+
+	res, err := c.authService.Logout(userID)
+	if err != nil {
+		log.Printf("Service error: failed to logout the user %d: %v", userID, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error":   "Logout failed",
+			"details": "An internal error occured. Please try again later.",
+		})
+		return
+	}
+
+	ctx.SetCookie("accessToken", "", -1, "/", "", true, true)
+	ctx.SetCookie("refreshToken", "", -1, "/", "", true, true)
+
+	ctx.JSON(http.StatusOK, res)
 }
