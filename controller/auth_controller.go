@@ -96,7 +96,7 @@ func (c *authController) Login(ctx *gin.Context) {
 		if errors.IsObjectNotFoundError(err) || errors.IsInvalidCredentialsError(err) {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "Invalid credentials",
-				"message": "The email or password you entered is incorrect.",
+				"details": "The email or password you entered is incorrect.",
 			})
 			return
 		}
@@ -104,7 +104,7 @@ func (c *authController) Login(ctx *gin.Context) {
 		if errors.IsObjectNotActiveError(err) {
 			ctx.JSON(http.StatusForbidden, gin.H{
 				"error":   "Account inactive",
-				"message": "Your account is currently inactive. Please contact support.",
+				"details": "Your account is currently inactive. Please contact support.",
 			})
 			return
 		}
@@ -118,23 +118,46 @@ func (c *authController) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, res)
+	accessTokenMaxAge := int(res.AccessTokenTTL.Seconds())
+	if accessTokenMaxAge < 0 {
+		accessTokenMaxAge = 0
+	}
+
+	ctx.SetCookie("accessToken", res.RawAccessToken, accessTokenMaxAge, "/", "", true, true)
+
+	refreshTokenMaxAge := int(res.RefreshTokenTTL.Seconds())
+	if refreshTokenMaxAge < 0 {
+		refreshTokenMaxAge = 0
+	}
+
+	ctx.SetCookie("refreshToken", res.RawRefreshToken, refreshTokenMaxAge, "/api/v1/auth/refresh", "", true, true)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"details": "Login successful",
+		"user":    res.User,
+	})
 }
 
 func (c *authController) RefreshToken(ctx *gin.Context) {
 	var (
-		req dto.RefreshTokenRequestDto
 		res *dto.RefreshTokenResponseDto
 		err error
 	)
 
-	err = ctx.ShouldBindJSON(&req)
+	refreshTokenString, err := ctx.Cookie("refreshToken")
 	if err != nil {
-		log.Printf("refresh binding error: %v", err)
-
+		if err == http.ErrNoCookie {
+			log.Printf("Refresh token cookie not found in request")
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Missing refresh token",
+				"details": "Refresh token is required. Please log in.",
+			})
+			return
+		}
+		log.Printf("Error retrieving refresh token cookie: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Invalid Input",
-			"details": "The request data is invalid. Please check your input and try again.",
+			"error":   "Invalid request",
+			"details": "Error processing refresh token.",
 		})
 		return
 	}
@@ -142,7 +165,7 @@ func (c *authController) RefreshToken(ctx *gin.Context) {
 	userAgent := ctx.Request.UserAgent()
 	clientIP := ctx.ClientIP()
 
-	res, err = c.authService.RefreshToken(req, userAgent, clientIP)
+	res, err = c.authService.RefreshToken(refreshTokenString, userAgent, clientIP)
 	if err != nil {
 		log.Printf("Refresh error: %v", err)
 
@@ -161,5 +184,14 @@ func (c *authController) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, res)
+	accessTokenMaxAge := int(res.AccessTokenTTL.Seconds())
+	if accessTokenMaxAge < 0 {
+		accessTokenMaxAge = 0
+	}
+
+	ctx.SetCookie("accessToken", res.RawAccessToken, accessTokenMaxAge, "/", "", true, true)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"details": "Access token refreshed successfully",
+	})
 }

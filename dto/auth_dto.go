@@ -23,20 +23,19 @@ type LoginRequestDto struct {
 }
 
 type LoginResponseDto struct {
-	AccessToken  string              `json:"access_token"`
-	RefreshToken string              `json:"refresh_token"`
-	TokenType    string              `json:"token_type"` // Bearer token
-	User         RegisterResponseDto `json:"user"`
-	LoggedInAt   time.Time           `json:"logged_in_at"`
-}
-
-type RefreshTokenRequestDto struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
+	RawAccessToken  string              `json:"-"`
+	RawRefreshToken string              `json:"-"`
+	TokenType       string              `json:"token_type"` // Bearer token
+	User            RegisterResponseDto `json:"user"`
+	LoggedInAt      time.Time           `json:"logged_in_at"`
+	AccessTokenTTL  time.Duration       `json:"access_token_time_to_live"`
+	RefreshTokenTTL time.Duration       `json:"refresh_token_time_to_live"`
 }
 
 type RefreshTokenResponseDto struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
+	RawAccessToken string        `json:"-"`
+	AccessTokenTTL time.Duration `json:"access_token_time_to_live"`
+	TokenType      string        `json:"token_type"`
 }
 
 func (req *RegisterRequestDto) ToEntity() entity.User {

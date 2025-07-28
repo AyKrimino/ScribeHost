@@ -15,7 +15,7 @@ import (
 type AuthService interface {
 	Register(req dto.RegisterRequestDto) (*dto.RegisterResponseDto, error)
 	Login(req dto.LoginRequestDto, userAgent, clientIP string) (*dto.LoginResponseDto, error)
-	RefreshToken(req dto.RefreshTokenRequestDto, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error)
+	RefreshToken(refreshTokenString, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error)
 }
 
 type authService struct {
@@ -76,7 +76,7 @@ func (s *authService) Login(req dto.LoginRequestDto, userAgent, clientIP string)
 
 	// TODO: check if the email is verified
 
-	accessToken, err := helper.CreateToken(existingUser.ID, existingUser.Email, existingUser.Role)
+	accessTokenString, err := helper.CreateToken(existingUser.ID, existingUser.Email, existingUser.Role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create token: %w", err)
 	}
@@ -90,7 +90,7 @@ func (s *authService) Login(req dto.LoginRequestDto, userAgent, clientIP string)
 	refreshToken := entity.RefreshToken{
 		TokenHash: refreshTokenHashed,
 		UserID:    existingUser.ID,
-		Expiry:    time.Now().UTC().Add(time.Hour * 24 * 15),
+		Expiry:    time.Now().UTC().Add(time.Hour * 24 * 15), // 15 days
 		IssuedAt:  time.Now().UTC(),
 		UserAgent: userAgent,
 		IpAddress: clientIP,
@@ -109,20 +109,31 @@ func (s *authService) Login(req dto.LoginRequestDto, userAgent, clientIP string)
 		return nil, fmt.Errorf("failed to update user last login: %w", err)
 	}
 
+	parsedAccessToken, err := helper.ValidateAndExtractClaims(accessTokenString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse generated access token for expiry: %w", err)
+	}
+	_, accessTokenTTL, err := helper.GetTokenExpiry(parsedAccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get access token expiry: %w", err)
+	}
+
+	refreshTokenTTL := 15 * 24 * time.Hour
+
 	res := dto.LoginResponseDto{
-		AccessToken:  accessToken,
-		RefreshToken: refreshTokenString,
-		TokenType:    "Bearer",
-		User:         dto.FromEntityToRegisterResponseDto(existingUser),
-		LoggedInAt:   now,
+		RawAccessToken:  accessTokenString,
+		RawRefreshToken: refreshTokenString,
+		TokenType:       "Bearer",
+		AccessTokenTTL:  accessTokenTTL,
+		RefreshTokenTTL: refreshTokenTTL,
+		User:            dto.FromEntityToRegisterResponseDto(existingUser),
+		LoggedInAt:      now,
 	}
 
 	return &res, nil
 }
 
-func (s *authService) RefreshToken(req dto.RefreshTokenRequestDto, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error) {
-	refreshTokenString := req.RefreshToken
-
+func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error) {
 	hashed, err := helper.HashToken(refreshTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the refresh token: %w", err)
@@ -153,9 +164,19 @@ func (s *authService) RefreshToken(req dto.RefreshTokenRequestDto, userAgent, cl
 		return nil, fmt.Errorf("failed to create token: %w", err)
 	}
 
+	parsedAccessToken, err := helper.ValidateAndExtractClaims(accessTokenString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse generated access token for expiry: %w", err)
+	}
+	_, accessTokenTTL, err := helper.GetTokenExpiry(parsedAccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get access token expiry: %w", err)
+	}
+
 	res := dto.RefreshTokenResponseDto{
-		AccessToken: accessTokenString,
-		TokenType:   "Bearer",
+		RawAccessToken: accessTokenString,
+		TokenType:      "Bearer",
+		AccessTokenTTL: accessTokenTTL,
 	}
 
 	return &res, nil

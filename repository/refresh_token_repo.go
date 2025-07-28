@@ -10,6 +10,8 @@ import (
 type RefreshTokenRepository interface {
 	Create(token *entity.RefreshToken) error
 	FindByTokenHash(tokenHash string) (*entity.RefreshToken, error)
+	Revoke(tokenHash string) error
+	RevokeAllForUser(userId uint) error
 }
 
 type refreshTokenRepository struct {
@@ -43,4 +45,12 @@ func (r *refreshTokenRepository) FindByTokenHash(tokenHash string) (*entity.Refr
 		return nil, fmt.Errorf("failed to find refresh token by hash %s: %w", tokenHash, err)
 	}
 	return &token, nil
+}
+
+func (r *refreshTokenRepository) Revoke(tokenHash string) error {
+	return nil
+}
+
+func (r *refreshTokenRepository) RevokeAllForUser(userId uint) error {
+	return nil
 }

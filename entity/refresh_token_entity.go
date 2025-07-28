@@ -11,6 +11,7 @@ type RefreshToken struct {
 	IssuedAt  time.Time `gorm:"not null"`
 	UserAgent string    `gorm:"type:text"`
 	IpAddress string    `gorm:"type:varchar(45)"`
+	IsRevoked bool      `gorm:"index;default:false"`
 }
 
 func (t *RefreshToken) IsValid() bool {
