@@ -61,6 +61,9 @@ debug
 *.sublime-*
 *.code-workspace
 
+# Other temp files
+/tmp/
+
 # Local development configs
 /configs/local.*
 /configs/dev.*
