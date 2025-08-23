@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: scribehost_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: scribehost
+      MYSQL_USER: scribehost_user
+      MYSQL_PASSWORD: scribepassword123
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build: .
+    container_name: scribehost_app
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_USERNAME=scribehost_user
+      - DB_PASSWORD=scribepassword123
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=scribehost
+      - PORT=4000
+
+volumes:
+  db_data:
+      

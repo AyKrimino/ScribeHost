@@ -23,7 +23,13 @@ func main() {
 
 	err = godotenv.Load()
 	if err != nil {
-		log.Fatalf("Failed to load .env file: %v", err)
+		if os.IsNotExist(err) {
+			log.Println(".env file not found, relying on environment variables.")
+		} else {
+			log.Printf("Failed to load .env file: %v", err)
+		}
+	} else {
+		log.Println("Successfully loaded .env file.")
 	}
 
 	err = repository.InitDB()

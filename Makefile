@@ -36,6 +36,21 @@ clean:
 	@rm -f $(BINARY_PATH)
 	@echo "Clean complete."
 
+# Docker Compose Commands
+up:
+	@echo "Starting services with Docker Compose..."
+	docker compose up -d
+	@echo "Services started. Use 'make logs' to view logs."
+
+down:
+	@echo "Stopping and removing services..."
+	docker compose down
+	@echo "Services stopped and removed."
+
+logs:
+	@echo "Viewing Docker Compose logs (Ctrl+C to stop)..."
+	docker compose logs -f
+
 help:
 	@echo "Available commands:"
 	@echo "  make build            - Build the application"
@@ -47,4 +62,4 @@ help:
 	@echo "  make clean            - Remove binary"
 	@echo "  make help             - Show this help"
 
-.PHONY: build run dev migrate-create migrate-up migrate-down clean help
+.PHONY: build run dev migrate-create migrate-up migrate-down clean help up down logs

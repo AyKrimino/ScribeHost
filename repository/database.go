@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/AyKrimino/ScribeHost/entity"
@@ -17,7 +18,13 @@ func InitDB() error {
 
 	err = godotenv.Load()
 	if err != nil {
-		return fmt.Errorf("failed to load .env file: %w", err)
+		if os.IsNotExist(err) {
+			log.Println(".env file not found, relying on environment variables.")
+		} else {
+			log.Printf("Failed to load .env file: %v", err)
+		}
+	} else {
+		log.Println("Successfully loaded .env file.")
 	}
 
 	var (
