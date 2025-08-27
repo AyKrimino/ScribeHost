@@ -11,4 +11,6 @@ func SetupAuthRoutes(authGroup *gin.RouterGroup, authController controller.AuthC
 	authGroup.POST("/login", authController.Login)
 	authGroup.POST("/refresh", authController.RefreshToken)
 	authGroup.POST("/logout", middleware.JwtAuthMiddleware(), authController.Logout)
+	authGroup.POST("/verify-otp", authController.VerifyOTP)
+	authGroup.POST("/resend-otp", authController.ResendOTP)
 }

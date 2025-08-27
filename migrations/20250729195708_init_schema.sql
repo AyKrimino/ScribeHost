@@ -10,7 +10,7 @@ CREATE TABLE `users` (
   `email_verified` boolean DEFAULT FALSE,
   `is_active` boolean DEFAULT TRUE,
   `otp_secret` varchar(100),
-  `otp` varchar(10),
+  `otp` varchar(64),
   `otp_expiry` datetime(3),
   `reset_token` varchar(100),
   `reset_token_expiry` datetime(3),

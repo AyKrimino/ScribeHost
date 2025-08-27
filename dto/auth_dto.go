@@ -55,3 +55,20 @@ func FromEntityToRegisterResponseDto(user *entity.User) RegisterResponseDto {
 		CreatedAt: user.CreatedAt,
 	}
 }
+
+type VerifyOTPRequestDto struct {
+	Email string `json:"email" binding:"required,email"`
+	OTP   string `json:"otp" binding:"required,len=6"`
+}
+
+type VerifyOTPResponseDto struct {
+	Msg string `json:"message"`
+}
+
+type ResendOTPRequestDto struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ResendOTPResponseDto struct {
+	Msg string `json:"message"`
+}

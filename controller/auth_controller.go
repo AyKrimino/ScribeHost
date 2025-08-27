@@ -15,6 +15,8 @@ type AuthController interface {
 	Login(ctx *gin.Context)
 	RefreshToken(ctx *gin.Context)
 	Logout(ctx *gin.Context)
+	VerifyOTP(ctx *gin.Context)
+	ResendOTP(ctx *gin.Context)
 }
 
 type authController struct {
@@ -110,7 +112,13 @@ func (c *authController) Login(ctx *gin.Context) {
 			return
 		}
 
-		// TODO: check for email verified error type
+		if err.Error() == "Email Verification required" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"error":   "Unauthorized user",
+				"details": "email verification is required.",
+			})
+			return
+		}
 
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "Login failed",
@@ -228,6 +236,77 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 	ctx.SetCookie("accessToken", "", -1, "/", "", true, true)
 	ctx.SetCookie("refreshToken", "", -1, "/", "", true, true)
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *authController) VerifyOTP(ctx *gin.Context) {
+	var (
+		req dto.VerifyOTPRequestDto
+		res *dto.VerifyOTPResponseDto
+		err error
+	)
+
+	err = ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Printf("Verify OTP binding error: %v", err)
+
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid input",
+			"details": "The request data is invalid. Please check your input and try again.",
+		})
+		return
+	}
+
+	res, err = c.authService.VerifyOTP(req.Email, req.OTP)
+	if err != nil {
+		log.Printf("Service error: failed to verify otp with email %s: %v", req.Email, err)
+		if errors.IsInvalidOTPError(err) {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Invalid OTP",
+				"deatils": "The OTP provided is invalid. Please check the correct OTP sent to your email.",
+			})
+			return
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error":   "Verify OTP failed",
+			"deatils": "An internal error occured. Please try again later.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *authController) ResendOTP(ctx *gin.Context) {
+	var (
+		req dto.ResendOTPRequestDto
+		res *dto.ResendOTPResponseDto
+		err error
+	)
+
+	err = ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Printf("Resend OTP binding error: %v", err)
+
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid input",
+			"details": "The request data is invalid. Please check your input and try again.",
+		})
+		return
+	}
+
+	res, err = c.authService.ResendOTP(req.Email)
+	if err != nil {
+		log.Printf("Service error: failed to resend otp with email %s: %v", req.Email, err)
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error":   "Resend OTP failed",
+			"deatils": "An internal error occured. Please try again later.",
+		})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, res)
 }

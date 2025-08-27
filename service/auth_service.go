@@ -17,6 +17,10 @@ type AuthService interface {
 	Login(req dto.LoginRequestDto, userAgent, clientIP string) (*dto.LoginResponseDto, error)
 	RefreshToken(refreshTokenString, userAgent, clientIP string) (*dto.RefreshTokenResponseDto, error)
 	Logout(userID uint) (*dto.LogoutResponseDto, error)
+	sendOTP(email string) error
+	ResendOTP(email string) (*dto.ResendOTPResponseDto, error)
+	StoreOTP(user *entity.User, otp string) error
+	VerifyOTP(email, otp string) (*dto.VerifyOTPResponseDto, error)
 }
 
 type authService struct {
@@ -53,6 +57,11 @@ func (s *authService) Register(req dto.RegisterRequestDto) (*dto.RegisterRespons
 		return nil, fmt.Errorf("failed to save user to database: %w", err)
 	}
 
+	err = s.sendOTP(createdUser.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send otp: %w", err)
+	}
+
 	response := dto.FromEntityToRegisterResponseDto(createdUser)
 	return &response, nil
 }
@@ -75,7 +84,9 @@ func (s *authService) Login(req dto.LoginRequestDto, userAgent, clientIP string)
 		return nil, errors.NewObjectNotActiveError("user")
 	}
 
-	// TODO: check if the email is verified
+	if !existingUser.EmailVerified {
+		return nil, fmt.Errorf("Email Verification required")
+	}
 
 	accessTokenString, err := helper.CreateToken(existingUser.ID, existingUser.Email, existingUser.Role)
 	if err != nil {
@@ -191,5 +202,79 @@ func (s *authService) Logout(userID uint) (*dto.LogoutResponseDto, error) {
 
 	return &dto.LogoutResponseDto{
 		Msg: "Successfully logged out",
+	}, nil
+}
+
+func (s *authService) sendOTP(email string) error {
+	user, err := s.authRepo.FindUserByEmail(email)
+	if user == nil {
+		return fmt.Errorf("failed to find user with email %s: %w", email, err)
+	}
+
+	otp := helper.GenerateOTP()
+	err = s.StoreOTP(user, otp)
+	if err != nil {
+		return fmt.Errorf("failed to store OTP: %w", err)
+	}
+
+	err = helper.SendOTPByEmail(user.Email, otp)
+	if err != nil {
+		return fmt.Errorf("failed to send otp to email %s: %w", user.Email, err)
+	}
+
+	return nil
+}
+
+func (s *authService) StoreOTP(user *entity.User, otp string) error {
+	hashedOTP := helper.HashOTP(otp)
+	user.OTP = hashedOTP
+
+	now := time.Now()
+	expiry := now.Add(60 * time.Second)
+	user.OTPExpiry = &expiry
+
+	err := s.authRepo.Update(*user)
+	return err
+}
+
+func (s *authService) VerifyOTP(email, otp string) (*dto.VerifyOTPResponseDto, error) {
+	user, err := s.authRepo.FindUserByEmail(email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	hashedOTP := helper.HashOTP(otp)
+	if hashedOTP != user.OTP {
+		return nil, errors.NewInvalidOTPError("OTPs didn't match")
+	}
+
+	if user.OTPExpiry.Before(time.Now()) {
+		return nil, errors.NewInvalidOTPError("OTP has been expired")
+	}
+
+	user.EmailVerified = true
+	user.OTP = ""
+	user.OTPExpiry = nil
+
+	err = s.authRepo.Update(*user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user with OTP attributes updates")
+	}
+
+	return &dto.VerifyOTPResponseDto{
+		Msg: "OTP verified successfully",
+	}, nil
+}
+
+func (s *authService) ResendOTP(email string) (*dto.ResendOTPResponseDto, error) {
+	err := s.sendOTP(email)
+	if err != nil {
+		return &dto.ResendOTPResponseDto{
+			Msg: fmt.Sprintf("failed to resend OTP to email %s: %v", email, err),
+		}, fmt.Errorf("failed to resend OTP to email %s: %w", email, err)
+	}
+
+	return &dto.ResendOTPResponseDto{
+		Msg: fmt.Sprintf("OTP successfully resent to email %s", email),
 	}, nil
 }
