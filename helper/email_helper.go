@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
@@ -31,11 +32,18 @@ func SendOTPByEmail(email, otp string) error {
 	password := os.Getenv("EMAIL_SMTP_PASSWORD")
 	receiverEmail := os.Getenv("EMAIL_FROM")
 
+	template, err := os.ReadFile("templates/emails/verify_email.html")
+	if err != nil {
+		return fmt.Errorf("failed to read email template: %w", err)
+	}
+
+	htmlBody := strings.Replace(string(template), "%%OTP%%", otp, -1)
+
 	m := gomail.NewMessage()
 	m.SetHeader("From", receiverEmail)
 	m.SetHeader("To", email)
-	m.SetHeader("Subject", "Email Verification")
-	m.SetBody("text/html", fmt.Sprintf("Hello <b>User</b> this is your otp <i>%s</i>", otp))
+	m.SetHeader("Subject", "Email Verification - ScribeHost")
+	m.SetBody("text/html", htmlBody)
 
 	d := gomail.NewDialer(host, port, username, password)
 

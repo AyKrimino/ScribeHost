@@ -230,7 +230,7 @@ func (s *authService) StoreOTP(user *entity.User, otp string) error {
 	user.OTP = hashedOTP
 
 	now := time.Now()
-	expiry := now.Add(60 * time.Second)
+	expiry := now.Add(5 * time.Minute)
 	user.OTPExpiry = &expiry
 
 	err := s.authRepo.Update(*user)
