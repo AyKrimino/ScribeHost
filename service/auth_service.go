@@ -19,19 +19,24 @@ type AuthService interface {
 	Logout(userID uint) (*dto.LogoutResponseDto, error)
 	sendOTP(email string) error
 	ResendOTP(email string) (*dto.ResendOTPResponseDto, error)
-	StoreOTP(user *entity.User, otp string) error
 	VerifyOTP(email, otp string) (*dto.VerifyOTPResponseDto, error)
 }
 
 type authService struct {
 	authRepo         repository.AuthRepository
 	refreshTokenRepo repository.RefreshTokenRepository
+	otpRedisRepo     repository.OtpRedisRepo
 }
 
-func NewAuthService(authRepo repository.AuthRepository, refreshTokenRepo repository.RefreshTokenRepository) AuthService {
+func NewAuthService(
+	authRepo repository.AuthRepository,
+	refreshTokenRepo repository.RefreshTokenRepository,
+	otpRedisRepo repository.OtpRedisRepo,
+) AuthService {
 	return &authService{
 		authRepo:         authRepo,
 		refreshTokenRepo: refreshTokenRepo,
+		otpRedisRepo:     otpRedisRepo,
 	}
 }
 
@@ -206,59 +211,36 @@ func (s *authService) Logout(userID uint) (*dto.LogoutResponseDto, error) {
 }
 
 func (s *authService) sendOTP(email string) error {
-	user, err := s.authRepo.FindUserByEmail(email)
-	if user == nil {
-		return fmt.Errorf("failed to find user with email %s: %w", email, err)
-	}
-
 	otp := helper.GenerateOTP()
-	err = s.StoreOTP(user, otp)
+
+	err := s.otpRedisRepo.StoreOTP(email, otp)
 	if err != nil {
 		return fmt.Errorf("failed to store OTP: %w", err)
 	}
 
-	err = helper.SendOTPByEmail(user.Email, otp)
+	err = helper.SendOTPByEmail(email, otp)
 	if err != nil {
-		return fmt.Errorf("failed to send otp to email %s: %w", user.Email, err)
+		return fmt.Errorf("failed to send otp to email %s: %w", email, err)
 	}
 
 	return nil
 }
 
-func (s *authService) StoreOTP(user *entity.User, otp string) error {
-	hashedOTP := helper.HashOTP(otp)
-	user.OTP = hashedOTP
-
-	now := time.Now()
-	expiry := now.Add(5 * time.Minute)
-	user.OTPExpiry = &expiry
-
-	err := s.authRepo.Update(*user)
-	return err
-}
-
 func (s *authService) VerifyOTP(email, otp string) (*dto.VerifyOTPResponseDto, error) {
 	user, err := s.authRepo.FindUserByEmail(email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
+		return nil, fmt.Errorf("failed to find user with email %s: %w", email, err)
 	}
 
-	hashedOTP := helper.HashOTP(otp)
-	if hashedOTP != user.OTP {
-		return nil, errors.NewInvalidOTPError("OTPs didn't match")
-	}
-
-	if user.OTPExpiry.Before(time.Now()) {
-		return nil, errors.NewInvalidOTPError("OTP has been expired")
+	err = s.otpRedisRepo.VerifyOTP(email, otp)
+	if err != nil {
+		return nil, err
 	}
 
 	user.EmailVerified = true
-	user.OTP = ""
-	user.OTPExpiry = nil
-
 	err = s.authRepo.Update(*user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update user with OTP attributes updates")
+		return nil, fmt.Errorf("faile to save user: %w", err)
 	}
 
 	return &dto.VerifyOTPResponseDto{

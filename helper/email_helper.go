@@ -2,26 +2,15 @@ package helper
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
 )
 
 func SendOTPByEmail(email, otp string) error {
-	err := godotenv.Load()
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Println(".env file not found, relying on environment variables.")
-		} else {
-			log.Printf("Failed to load .env file: %v", err)
-		}
-	} else {
-		log.Println("Successfully loaded .env file.")
-	}
+	LoadEnv()
 
 	host := os.Getenv("EMAIL_SMTP_HOST")
 	port, err := strconv.Atoi(os.Getenv("EMAIL_SMTP_PORT"))

@@ -1,18 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
 
 	"github.com/AyKrimino/ScribeHost/controller"
+	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/middleware"
 	"github.com/AyKrimino/ScribeHost/repository"
 	"github.com/AyKrimino/ScribeHost/routes"
 	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -21,30 +22,30 @@ func main() {
 
 	setupLoggerOutput()
 
-	err = godotenv.Load()
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Println(".env file not found, relying on environment variables.")
-		} else {
-			log.Printf("Failed to load .env file: %v", err)
-		}
-	} else {
-		log.Println("Successfully loaded .env file.")
-	}
+	helper.LoadEnv()
 
 	err = repository.InitDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
+	ctx := context.Background()
+
+	redisClient, err := helper.CreateRedisClientConn(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create redis client: %v", err)
+	}
+	defer redisClient.Close()
+
 	// repositories
 	userRepo := repository.NewUserRepository()
 	authRepo := repository.NewAuthRepository()
 	refreshTokenRepo := repository.NewRefreshTokenRepository()
+	otpRedisRepo := repository.NewOtpRedisRepo(redisClient, ctx)
 
 	// services
 	userService := service.NewUserService(userRepo)
-	authService := service.NewAuthService(authRepo, refreshTokenRepo)
+	authService := service.NewAuthService(authRepo, refreshTokenRepo, otpRedisRepo)
 
 	// controllers
 	userController := controller.NewUserController(userService)

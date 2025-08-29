@@ -2,13 +2,12 @@ package repository
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/AyKrimino/ScribeHost/entity"
+	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/joho/godotenv"
 )
 
 var DB *gorm.DB
@@ -16,16 +15,7 @@ var DB *gorm.DB
 func InitDB() error {
 	var err error
 
-	err = godotenv.Load()
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Println(".env file not found, relying on environment variables.")
-		} else {
-			log.Printf("Failed to load .env file: %v", err)
-		}
-	} else {
-		log.Println("Successfully loaded .env file.")
-	}
+	helper.LoadEnv()
 
 	var (
 		databaseUsername = os.Getenv("DB_USERNAME")

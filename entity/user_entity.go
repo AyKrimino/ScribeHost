@@ -15,10 +15,6 @@ type User struct {
 	EmailVerified bool           `gorm:"default:false" json:"email_verified"`
 	IsActive      bool           `gorm:"default:true;index" json:"is_active"`
 
-	OTPSecret string     `gorm:"type:varchar(100)" json:"-"` // For 2FA
-	OTP       string     `gorm:"type:varchar(64)" json:"-"`  // Current OTP code
-	OTPExpiry *time.Time `json:"otp_expiry"`                 // OTP expiration
-
 	// Password Reset
 	ResetToken       string     `gorm:"type:varchar(100)" json:"-"`
 	ResetTokenExpiry *time.Time `json:"reset_token_expiry"`
