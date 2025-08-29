@@ -59,6 +59,7 @@ The authentication module follows a clean MVC (Model-View-Controller) architectu
 - `repository/auth_repo.go`: Handles authentication data operations
 - `repository/user_repo.go`: Handles user data operations
 - `repository/refresh_token_repo.go`: Handles refresh token operations
+- `repository/otp_redis_repo.go`: Handles OTP storage in Redis
 
 ### DTOs (Data Transfer Objects)
 - `dto/auth_dto.go`: DTOs for authentication requests/responses
@@ -69,6 +70,7 @@ The authentication module follows a clean MVC (Model-View-Controller) architectu
 - `helper/email_helper.go`: Email sending functionality
 - `helper/jwt_helper.go`: JWT token generation and validation
 - `helper/password_helper.go`: Password hashing and comparison
+- `helper/redis_client_helper.go`: Redis connection helper
 
 ### Middleware
 - `middleware/jwt_auth_middleware.go`: JWT authentication middleware
@@ -90,6 +92,12 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=scribe_host
 
+# Redis Configuration (for OTP storage)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+
 # Goose Configuration (for database migrations)
 GOOSE_DRIVER=mysql
 GOOSE_DBSTRING="${DB_USERNAME}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?parseTime=true"
@@ -110,6 +118,10 @@ EMAIL_FROM=your_email@gmail.com
 - `DB_HOST=127.0.0.1`: Database host (localhost for local development)
 - `DB_PORT=3306`: Database port (default for MySQL)
 - `DB_NAME=scribe_host`: Name of your database (will be created during migrations)
+- `REDIS_HOST=localhost`: Redis server host
+- `REDIS_PORT=6379`: Redis server port
+- `REDIS_PASSWORD=`: Redis server password (empty for default configuration)
+- `REDIS_DB=0`: Redis database number to use
 - `GOOSE_DRIVER=mysql`: Database driver for migration tool (should match your database)
 - `GOOSE_DBSTRING`: Connection string for the migration tool (automatically generated from other variables)
 - `EMAIL_SMTP_HOST=smtp.gmail.com`: SMTP server host (e.g., "smtp.gmail.com" for Gmail)
@@ -120,11 +132,17 @@ EMAIL_FROM=your_email@gmail.com
 
 > **Important Note**: For Gmail, you'll need to generate an "App Password" instead of using your regular account password. Go to your Google Account > Security > App Passwords to generate one. This is required because Gmail blocks sign-in attempts from apps that don't use 2-Step Verification.
 
+> **Redis Note**: Redis is used to store OTPs temporarily with automatic expiration. The Redis server must be running for OTP functionality to work. You can install Redis using your package manager or Docker.
+
 2. **Database**:
    - Run migrations to set up database schema
    - Use `make migrate-up` to apply migrations
 
-3. **Running the Application**:
+3. **Redis**:
+   - Install and start Redis server (see [Redis installation guide](https://redis.io/docs/getting-started/installation/))
+   - Verify Redis is running with `redis-cli ping` (should return "PONG")
+
+4. **Running the Application**:
    - Use `make dev` for development with live reload
    - Use `make up` to run the application with Docker
 
@@ -134,7 +152,5 @@ EMAIL_FROM=your_email@gmail.com
 - Rate limiting for OTP requests
 - Account recovery flow (password reset)
 - Two-factor authentication (2FA) with TOTP
-
-
 
 > **Note**: This documentation is part of the `feature/auth` branch and will be updated as new features are added to the authentication module.
