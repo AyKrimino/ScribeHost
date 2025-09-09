@@ -37,6 +37,8 @@ func main() {
 	}
 	defer redisClient.Close()
 
+	middleware.SetRedisClient(redisClient)
+
 	// repositories
 	userRepo := repository.NewUserRepository()
 	authRepo := repository.NewAuthRepository()
