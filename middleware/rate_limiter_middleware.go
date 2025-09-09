@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/AyKrimino/ScribeHost/dto"
@@ -72,9 +70,6 @@ func RateLimiter(endpoint string) gin.HandlerFunc {
 		}
 
 		key := fmt.Sprintf("rate_limit:%s:%s:%s", endpoint, rateLimit.rateLimitKey, identifier)
-		log.Println(strings.Repeat("*", 15))
-		log.Println(key)
-		log.Println(strings.Repeat("*", 15))
 
 		c := context.Background()
 		val, err := redisClient.Get(c, key).Result()

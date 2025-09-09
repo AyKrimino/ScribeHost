@@ -16,6 +16,22 @@ services:
       timeout: 20s
       retries: 10
       start_period: 10s
+  redis:
+    image: "redis:latest"
+    container_name: redis
+    hostname: redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: --requirepass redisPassword
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redisPassword", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   app:
     build: .
@@ -25,14 +41,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
+      - APP_ENV=production
       - DB_USERNAME=scribehost_user
       - DB_PASSWORD=scribepassword123
       - DB_HOST=db
       - DB_PORT=3306
       - DB_NAME=scribehost
       - PORT=4000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redisPassword
 
 volumes:
   db_data:
-      
+  redis_data:  
