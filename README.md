@@ -39,6 +39,19 @@ This module implements a secure authentication system for the ScribeHost applica
 | POST | `/api/v1/auth/verify-otp` | Verify email OTP | No |
 | POST | `/api/v1/auth/resend-otp` | Resend OTP for email verification | No |
 
+## Rate Limiting
+
+The authentication system implements rate limiting using the Token Bucket algorithm to prevent abuse and protect against brute force attacks. Rate limits are applied to the following endpoints:
+
+| Endpoint | Rate Limit | Identifier |
+|----------|------------|------------|
+| `/api/v1/auth/register` | 1 request per hour | IP address |
+| `/api/v1/auth/login` | 5 requests per hour | IP address |
+| `/api/v1/auth/verify-otp` | 3 requests per hour | Email address |
+| `/api/v1/auth/resend-otp` | 3 requests per hour | IP address |
+
+This rate limiting is implemented using Redis for storage, ensuring it works correctly even if multiple instances of the application are running. The rate limits are hard-coded in the application and do not require any additional configuration.
+
 ## Architecture
 
 The authentication module follows a clean MVC (Model-View-Controller) architecture:
@@ -75,6 +88,7 @@ The authentication module follows a clean MVC (Model-View-Controller) architectu
 ### Middleware
 - `middleware/jwt_auth_middleware.go`: JWT authentication middleware
 - `middleware/logger_middleware.go`: Request logging middleware
+- `middleware/rate_limiter.go`: Rate limiting middleware
 
 ## Setup
 
@@ -149,7 +163,6 @@ EMAIL_FROM=your_email@gmail.com
 ## Future Features
 
 - OAuth 2.0 integration for social logins
-- Rate limiting for OTP requests
 - Account recovery flow (password reset)
 - Two-factor authentication (2FA) with TOTP
 
