@@ -14,16 +14,8 @@ type User struct {
 	Role          types.RoleType `gorm:"type:varchar(50);default:'author';index" json:"role"`
 	EmailVerified bool           `gorm:"default:false" json:"email_verified"`
 	IsActive      bool           `gorm:"default:true;index" json:"is_active"`
-
-	// Password Reset
-	ResetToken       string     `gorm:"type:varchar(100)" json:"-"`
-	ResetTokenExpiry *time.Time `json:"reset_token_expiry"`
-
-	// Timestamps
-	LastLogin *time.Time `json:"last_login,omitempty"`
-
-	// Relations
-	Profile Profile `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"profile"`
+	LastLogin     *time.Time     `json:"last_login,omitempty"`
+	Profile       Profile        `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"profile"`
 }
 
 type Profile struct {

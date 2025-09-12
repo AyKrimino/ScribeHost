@@ -17,6 +17,8 @@ type AuthController interface {
 	Logout(ctx *gin.Context)
 	VerifyOTP(ctx *gin.Context)
 	ResendOTP(ctx *gin.Context)
+	ForgotPassword(ctx *gin.Context)
+	ResetPassword(ctx *gin.Context)
 }
 
 type authController struct {
@@ -127,17 +129,11 @@ func (c *authController) Login(ctx *gin.Context) {
 		return
 	}
 
-	accessTokenMaxAge := int(res.AccessTokenTTL.Seconds())
-	if accessTokenMaxAge < 0 {
-		accessTokenMaxAge = 0
-	}
+	accessTokenMaxAge := max(int(res.AccessTokenTTL.Seconds()), 0)
 
 	ctx.SetCookie("accessToken", res.RawAccessToken, accessTokenMaxAge, "/", "", true, true)
 
-	refreshTokenMaxAge := int(res.RefreshTokenTTL.Seconds())
-	if refreshTokenMaxAge < 0 {
-		refreshTokenMaxAge = 0
-	}
+	refreshTokenMaxAge := max(int(res.RefreshTokenTTL.Seconds()), 0)
 
 	ctx.SetCookie("refreshToken", res.RawRefreshToken, refreshTokenMaxAge, "/", "", true, true)
 
@@ -193,10 +189,7 @@ func (c *authController) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	accessTokenMaxAge := int(res.AccessTokenTTL.Seconds())
-	if accessTokenMaxAge < 0 {
-		accessTokenMaxAge = 0
-	}
+	accessTokenMaxAge := max(int(res.AccessTokenTTL.Seconds()), 0)
 
 	ctx.SetCookie("accessToken", res.RawAccessToken, accessTokenMaxAge, "/", "", true, true)
 
@@ -304,6 +297,70 @@ func (c *authController) ResendOTP(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error":   "Resend OTP failed",
 			"deatils": "An internal error occured. Please try again later.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *authController) ForgotPassword(ctx *gin.Context) {
+	var (
+		req dto.ForgotPasswordRequestDto
+		res *dto.ForgotPasswordResponseDto
+		err error
+	)
+
+	err = ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Printf("Forgot Password binding error: %v", err)
+
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid input",
+			"details": "The request data is invalid. Please check your input and try again.",
+		})
+		return
+	}
+
+	res, err = c.authService.ForgotPassword(req.Email)
+	if err != nil {
+		log.Printf("Service error: %v", err)
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error":   "Forgot Password failed",
+			"details": "An internal error occured. Please try again later.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *authController) ResetPassword(ctx *gin.Context) {
+	var (
+		req dto.ResetPasswordRequestDto
+		res *dto.ResetPasswordResponseDto
+		err error
+	)
+
+	err = ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Printf("Reset Password binding error: %v", err)
+
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid input",
+			"details": "The request data is invalid. Please check your input and try again.",
+		})
+		return
+	}
+
+	res, err = c.authService.ResetPassword(req.Email, req.Token, req.NewPassword)
+	if err != nil {
+		log.Printf("Service error: failed to reset password: %v", err)
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error":   "Reset Password failed",
+			"details": "An internal error occured. Please try again later.",
 		})
 		return
 	}

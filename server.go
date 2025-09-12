@@ -44,10 +44,16 @@ func main() {
 	authRepo := repository.NewAuthRepository()
 	refreshTokenRepo := repository.NewRefreshTokenRepository()
 	otpRedisRepo := repository.NewOtpRedisRepo(redisClient, ctx)
+	passwordResetRedisRepo := repository.NewPasswordResetRedisRepo(redisClient, ctx)
 
 	// services
 	userService := service.NewUserService(userRepo)
-	authService := service.NewAuthService(authRepo, refreshTokenRepo, otpRedisRepo)
+	authService := service.NewAuthService(
+		authRepo,
+		refreshTokenRepo,
+		otpRedisRepo,
+		passwordResetRedisRepo,
+	)
 
 	// controllers
 	userController := controller.NewUserController(userService)

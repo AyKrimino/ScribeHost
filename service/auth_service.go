@@ -20,23 +20,29 @@ type AuthService interface {
 	sendOTP(email string) error
 	ResendOTP(email string) (*dto.ResendOTPResponseDto, error)
 	VerifyOTP(email, otp string) (*dto.VerifyOTPResponseDto, error)
+	sendResetPassword(email string) error
+	ForgotPassword(email string) (*dto.ForgotPasswordResponseDto, error)
+	ResetPassword(email, token, newPassword string) (*dto.ResetPasswordResponseDto, error)
 }
 
 type authService struct {
-	authRepo         repository.AuthRepository
-	refreshTokenRepo repository.RefreshTokenRepository
-	otpRedisRepo     repository.OtpRedisRepo
+	authRepo               repository.AuthRepository
+	refreshTokenRepo       repository.RefreshTokenRepository
+	otpRedisRepo           repository.OtpRedisRepo
+	passwordResetRedisRepo repository.PasswordResetRedisRepo
 }
 
 func NewAuthService(
 	authRepo repository.AuthRepository,
 	refreshTokenRepo repository.RefreshTokenRepository,
 	otpRedisRepo repository.OtpRedisRepo,
+	passwordResetRedisRepo repository.PasswordResetRedisRepo,
 ) AuthService {
 	return &authService{
-		authRepo:         authRepo,
-		refreshTokenRepo: refreshTokenRepo,
-		otpRedisRepo:     otpRedisRepo,
+		authRepo:               authRepo,
+		refreshTokenRepo:       refreshTokenRepo,
+		otpRedisRepo:           otpRedisRepo,
+		passwordResetRedisRepo: passwordResetRedisRepo,
 	}
 }
 
@@ -240,7 +246,7 @@ func (s *authService) VerifyOTP(email, otp string) (*dto.VerifyOTPResponseDto, e
 	user.EmailVerified = true
 	err = s.authRepo.Update(*user)
 	if err != nil {
-		return nil, fmt.Errorf("faile to save user: %w", err)
+		return nil, fmt.Errorf("failed to save user: %w", err)
 	}
 
 	return &dto.VerifyOTPResponseDto{
@@ -258,5 +264,76 @@ func (s *authService) ResendOTP(email string) (*dto.ResendOTPResponseDto, error)
 
 	return &dto.ResendOTPResponseDto{
 		Msg: fmt.Sprintf("OTP successfully resent to email %s", email),
+	}, nil
+}
+
+func (s *authService) sendResetPassword(email string) error {
+	token, err := helper.GeneratePasswordResetToken()
+	if err != nil {
+		return fmt.Errorf("failed to generate password reset token: %w", err)
+	}
+
+	resetLink := fmt.Sprintf("/reset-password?token=%s", token)
+
+	err = s.passwordResetRedisRepo.StorePasswordResetToken(email, token)
+	if err != nil {
+		return fmt.Errorf("failed to store token: %w", err)
+	}
+
+	err = helper.SendPasswordResetEmail(email, resetLink)
+	if err != nil {
+		return fmt.Errorf("failed to send token to email %s: %w", email, err)
+	}
+
+	return nil
+}
+
+func (s *authService) ForgotPassword(email string) (*dto.ForgotPasswordResponseDto, error) {
+	user, err := s.authRepo.FindUserByEmail(email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user with email %s: %w", email, err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user with email %s does not exist", email)
+	}
+
+	err = s.sendResetPassword(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.ForgotPasswordResponseDto{
+		Msg: "reset password email was sent successfully",
+	}, nil
+}
+
+func (s *authService) ResetPassword(email, token, newPassword string) (*dto.ResetPasswordResponseDto, error) {
+	err := s.passwordResetRedisRepo.VerifyPasswordResetToken(email, token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify password reset token: %w", err)
+	}
+
+	user, err := s.authRepo.FindUserByEmail(email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user with email %s: %w", email, err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user with email %s does not exist", email)
+	}
+
+	hashedPassword, err := helper.HashPassword(newPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash the new password: %w", err)
+	}
+
+	user.PasswordHash = hashedPassword
+
+	err = s.authRepo.Update(*user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user with the new password: %w", err)
+	}
+
+	return &dto.ResetPasswordResponseDto{
+		Msg: "new password is reset successfully",
 	}, nil
 }

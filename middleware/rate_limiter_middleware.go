@@ -24,10 +24,11 @@ type Bucket struct {
 }
 
 var RateLimits = map[string]Bucket{
-	"register":   {BucketSize: 1, RefillRate: 1, rateLimitKey: "ip"},
-	"login":      {BucketSize: 5, RefillRate: 5, rateLimitKey: "ip"},
-	"verify-otp": {BucketSize: 3, RefillRate: 3, rateLimitKey: "email"},
-	"resend-otp": {BucketSize: 3, RefillRate: 3, rateLimitKey: "ip"},
+	"register":        {BucketSize: 1, RefillRate: 1, rateLimitKey: "ip"},
+	"login":           {BucketSize: 5, RefillRate: 5, rateLimitKey: "ip"},
+	"verify-otp":      {BucketSize: 3, RefillRate: 3, rateLimitKey: "email"},
+	"resend-otp":      {BucketSize: 3, RefillRate: 3, rateLimitKey: "ip"},
+	"forgot-password": {BucketSize: 1, RefillRate: 1, rateLimitKey: "ip"},
 }
 
 var redisClient *redis.Client

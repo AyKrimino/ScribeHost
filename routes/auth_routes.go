@@ -13,4 +13,6 @@ func SetupAuthRoutes(authGroup *gin.RouterGroup, authController controller.AuthC
 	authGroup.POST("/logout", middleware.JwtAuthMiddleware(), authController.Logout)
 	authGroup.POST("/verify-otp", middleware.RateLimiter("verify-otp"), authController.VerifyOTP)
 	authGroup.POST("/resend-otp", middleware.RateLimiter("resend-otp"), authController.ResendOTP)
+	authGroup.POST("/forgot-password", middleware.RateLimiter("forgot-password"), authController.ForgotPassword)
+	authGroup.POST("/reset-password", middleware.RateLimiter("reset-password"), authController.ResetPassword)
 }

@@ -72,3 +72,21 @@ type ResendOTPRequestDto struct {
 type ResendOTPResponseDto struct {
 	Msg string `json:"message"`
 }
+
+type ForgotPasswordRequestDto struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ForgotPasswordResponseDto struct {
+	Msg string `json:"message"`
+}
+
+type ResetPasswordRequestDto struct {
+	Email       string `json:"email" binding:"required,email"`
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
+type ResetPasswordResponseDto struct {
+	Msg string `json:"message"`
+}

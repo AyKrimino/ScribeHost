@@ -9,8 +9,6 @@ CREATE TABLE `users` (
   `role` varchar(50) DEFAULT 'author',
   `email_verified` boolean DEFAULT FALSE,
   `is_active` boolean DEFAULT TRUE,
-  `reset_token` varchar(100),
-  `reset_token_expiry` datetime(3),
   `last_login` datetime(3),
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_users_email` (`email`),
