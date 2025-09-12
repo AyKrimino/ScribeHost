@@ -5,11 +5,12 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"gopkg.in/gomail.v2"
 )
 
-func SendOTPByEmail(email, otp string) error {
+func SendEmail(templateFile, placeholder, replacement, subject, email string) error {
 	LoadEnv()
 
 	host := os.Getenv("EMAIL_SMTP_HOST")
@@ -21,17 +22,20 @@ func SendOTPByEmail(email, otp string) error {
 	password := os.Getenv("EMAIL_SMTP_PASSWORD")
 	receiverEmail := os.Getenv("EMAIL_FROM")
 
-	template, err := os.ReadFile("templates/emails/verify_email.html")
+	template, err := os.ReadFile(templateFile)
 	if err != nil {
 		return fmt.Errorf("failed to read email template: %w", err)
 	}
 
-	htmlBody := strings.Replace(string(template), "%%OTP%%", otp, -1)
+	currYear, _, _ := time.Now().Date()
+
+	htmlBody := strings.Replace(string(template), placeholder, replacement, -1)
+	htmlBody = strings.Replace(string(template), "%%YEAR%%", string(currYear), -1)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", receiverEmail)
 	m.SetHeader("To", email)
-	m.SetHeader("Subject", "Email Verification - ScribeHost")
+	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", htmlBody)
 
 	d := gomail.NewDialer(host, port, username, password)
@@ -42,37 +46,25 @@ func SendOTPByEmail(email, otp string) error {
 	return nil
 }
 
+func SendOTPByEmail(email, otp string) error {
+	return SendEmail(
+		"templates/emails/verify_email.html",
+		"%%OTP%%",
+		otp,
+		"Email Verification - ScribeHost",
+		email,
+	)
+}
+
 func SendPasswordResetEmail(email, resetLink string) error {
-	LoadEnv()
-
-	host := os.Getenv("EMAIL_SMTP_HOST")
-	port, err := strconv.Atoi(os.Getenv("EMAIL_SMTP_PORT"))
-	if err != nil {
-		return err
-	}
-	username := os.Getenv("EMAIL_SMTP_USER")
-	password := os.Getenv("EMAIL_SMTP_PASSWORD")
-	receiverEmail := os.Getenv("EMAIL_FROM")
-
-	template, err := os.ReadFile("templates/emails/password_reset_email.html")
-	if err != nil {
-		return fmt.Errorf("failed to read email template: %w", err)
-	}
-
 	frontendURL := os.Getenv("FRONTEND_URL")
 	resetLink = frontendURL + resetLink
-	htmlBody := strings.Replace(string(template), "%%RESET_LINK%%", resetLink, -1)
 
-	m := gomail.NewMessage()
-	m.SetHeader("From", receiverEmail)
-	m.SetHeader("To", email)
-	m.SetHeader("Subject", "Password Reset - ScribeHost")
-	m.SetBody("text/html", htmlBody)
-
-	d := gomail.NewDialer(host, port, username, password)
-
-	if err := d.DialAndSend(m); err != nil {
-		return err
-	}
-	return nil
+	return SendEmail(
+		"templates/emails/password_reset_email.html",
+		"%%RESET_LINK%%",
+		resetLink,
+		"Password Reset - ScribeHost",
+		email,
+	)
 }
