@@ -38,6 +38,8 @@ This module implements a secure authentication system for the ScribeHost applica
 | POST | `/api/v1/auth/logout` | Log out user | Yes (Access Token) |
 | POST | `/api/v1/auth/verify-otp` | Verify email OTP | No |
 | POST | `/api/v1/auth/resend-otp` | Resend OTP for email verification | No |
+| POST | `/api/v1/auth/forgot-password` | Request password reset | No |
+| POST | `/api/v1/auth/reset-password` | Reset password | No |
 
 ## Rate Limiting
 
@@ -49,6 +51,7 @@ The authentication system implements rate limiting using the Token Bucket algori
 | `/api/v1/auth/login` | 5 requests per hour | IP address |
 | `/api/v1/auth/verify-otp` | 3 requests per hour | Email address |
 | `/api/v1/auth/resend-otp` | 3 requests per hour | IP address |
+| `/api/v1/auth/forgot-password` | 1 request per hour | IP address |
 
 This rate limiting is implemented using Redis for storage, ensuring it works correctly even if multiple instances of the application are running. The rate limits are hard-coded in the application and do not require any additional configuration.
 
@@ -83,6 +86,8 @@ EMAIL_SMTP_PORT=587
 EMAIL_SMTP_USER=your_email@gmail.com
 EMAIL_SMTP_PASSWORD=your_app_password
 EMAIL_FROM=your_email@gmail.com
+
+FRONTEND_URL=http://localhost:3000
 ```
 
 ### Example `.env.production`:
@@ -109,12 +114,15 @@ EMAIL_SMTP_PORT=587
 EMAIL_SMTP_USER=production@scribehost.com
 EMAIL_SMTP_PASSWORD=production_app_password
 EMAIL_FROM=production@scribehost.com
+
+FRONTEND_URL=https://app.scribehost.com
 ```
 
 **Key Differences**:
 - Development uses `localhost` for database and Redis
 - Production uses Docker service names (`db` and `redis`)
 - Production uses different database credentials
+- `FRONTEND_URL` is required for password reset links
 
 ## Setup
 
@@ -143,7 +151,6 @@ EMAIL_FROM=production@scribehost.com
 ## Future Features
 
 - OAuth 2.0 integration for social logins
-- Account recovery flow (password reset)
 - Two-factor authentication (2FA) with TOTP
 
 > **Note**: This documentation is part of the `feature/auth` branch and will be updated as new features are added to the authentication module.
