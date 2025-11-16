@@ -24,6 +24,7 @@ go.work.sum
 .env
 .env.local
 .env*.local
+.env*.production
 
 # IDE specific files
 .idea/
@@ -60,6 +61,9 @@ debug
 # Editor temp files
 *.sublime-*
 *.code-workspace
+
+# Other temp files
+/tmp/
 
 # Local development configs
 /configs/local.*
