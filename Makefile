@@ -2,6 +2,8 @@ BINARY_NAME=scribehost
 BINARY_DIR=bin
 BINARY_PATH=$(BINARY_DIR)/$(BINARY_NAME)
 MIGRATIONS_DIR=migrations
+LOCAL_ENV=.env.local
+PROD_ENV=.env.production
 
 build:
 	@echo "Building $(BINARY_NAME)..."
@@ -25,11 +27,11 @@ migrate-create:
 
 migrate-up:
 	@echo "Applying migrations up..."
-	@goose -dir $(MIGRATIONS_DIR) up
+	@goose -env $(LOCAL_ENV) -dir $(MIGRATIONS_DIR) up
 
 migrate-down:
 	@echo "Rolling back last migration..."
-	@goose -dir $(MIGRATIONS_DIR) down
+	@goose -env $(LOCAL_ENV) -dir $(MIGRATIONS_DIR) down
 
 clean:
 	@echo "Cleaning up..."
