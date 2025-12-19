@@ -1,4 +1,4 @@
-package repository
+package auth
 
 import (
 	"fmt"
@@ -18,9 +18,9 @@ type refreshTokenRepository struct {
 	db *gorm.DB
 }
 
-func NewRefreshTokenRepository() RefreshTokenRepository {
+func NewRefreshTokenRepository(db *gorm.DB) RefreshTokenRepository {
 	return &refreshTokenRepository{
-		db: DB,
+		db: db,
 	}
 }
 

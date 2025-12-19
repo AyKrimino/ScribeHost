@@ -14,7 +14,6 @@ import (
 	"github.com/AyKrimino/ScribeHost/internal/middleware"
 	"github.com/AyKrimino/ScribeHost/internal/server"
 	"github.com/AyKrimino/ScribeHost/internal/user"
-	"github.com/AyKrimino/ScribeHost/repository"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -44,9 +43,9 @@ func main() {
 	// repositories
 	userRepo := user.NewUserRepository(db)
 	authRepo := auth.NewAuthRepository(db)
-	refreshTokenRepo := repository.NewRefreshTokenRepository()
+	refreshTokenRepo := auth.NewRefreshTokenRepository(db)
 	otpRedisRepo := auth.NewOtpRedisRepo(redisClient, ctx)
-	passwordResetRedisRepo := repository.NewPasswordResetRedisRepo(redisClient, ctx)
+	passwordResetRedisRepo := auth.NewPasswordResetRedisRepo(redisClient, ctx)
 
 	// services
 	userService := user.NewUserService(userRepo)

@@ -1,11 +1,10 @@
-package repository
+package auth
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/helper"
 	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
 	"github.com/redis/go-redis/v9"
 )
