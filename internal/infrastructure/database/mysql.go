@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/AyKrimino/ScribeHost/entity"
 	"github.com/AyKrimino/ScribeHost/helper"
+	"github.com/AyKrimino/ScribeHost/internal/entity"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )

@@ -10,7 +10,7 @@ type RefreshToken struct {
 	Expiry    time.Time `gorm:"index;not null"`
 	IssuedAt  time.Time `gorm:"not null"`
 	UserAgent string    `gorm:"type:text"`
-	IpAddress string    `gorm:"type:varchar(45)"`
+	IPAddress string    `gorm:"type:varchar(45)"`
 	IsRevoked bool      `gorm:"index;default:false"`
 }
 

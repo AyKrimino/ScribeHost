@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/entity"
 	"github.com/AyKrimino/ScribeHost/helper"
+	"github.com/AyKrimino/ScribeHost/internal/entity"
 	em "github.com/AyKrimino/ScribeHost/internal/infrastructure/email"
 	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
 	"github.com/AyKrimino/ScribeHost/repository"
@@ -116,7 +116,7 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 		Expiry:    time.Now().UTC().Add(time.Hour * 24 * 15), // 15 days
 		IssuedAt:  time.Now().UTC(),
 		UserAgent: userAgent,
-		IpAddress: clientIP,
+		IPAddress: clientIP,
 	}
 
 	err = s.refreshTokenRepo.Create(&refreshToken)

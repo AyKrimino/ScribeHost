@@ -3,7 +3,7 @@ package user
 import (
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/entity"
+	"github.com/AyKrimino/ScribeHost/internal/entity"
 	"github.com/AyKrimino/ScribeHost/types"
 )
 

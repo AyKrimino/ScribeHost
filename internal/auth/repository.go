@@ -3,7 +3,7 @@ package auth
 import (
 	"fmt"
 
-	"github.com/AyKrimino/ScribeHost/entity"
+	"github.com/AyKrimino/ScribeHost/internal/entity"
 	"github.com/jinzhu/gorm"
 )
 
