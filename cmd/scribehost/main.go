@@ -9,6 +9,7 @@ import (
 
 	"github.com/AyKrimino/ScribeHost/controller"
 	"github.com/AyKrimino/ScribeHost/helper"
+	"github.com/AyKrimino/ScribeHost/internal/auth"
 	"github.com/AyKrimino/ScribeHost/internal/server"
 	"github.com/AyKrimino/ScribeHost/middleware"
 	"github.com/AyKrimino/ScribeHost/repository"
@@ -48,7 +49,7 @@ func main() {
 
 	// services
 	userService := service.NewUserService(userRepo)
-	authService := service.NewAuthService(
+	authService := auth.NewAuthService(
 		authRepo,
 		refreshTokenRepo,
 		otpRedisRepo,
@@ -57,7 +58,7 @@ func main() {
 
 	// controllers
 	userController := controller.NewUserController(userService)
-	authController := controller.NewAuthController(authService)
+	authController := auth.NewAuthController(authService)
 
 	router := gin.New()
 	router.Use(

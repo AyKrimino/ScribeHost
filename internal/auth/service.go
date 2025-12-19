@@ -1,4 +1,4 @@
-package service
+package auth
 
 import (
 	"crypto/rand"
@@ -8,21 +8,20 @@ import (
 	"github.com/AyKrimino/ScribeHost/entity"
 	"github.com/AyKrimino/ScribeHost/errors"
 	"github.com/AyKrimino/ScribeHost/helper"
-	"github.com/AyKrimino/ScribeHost/internal/auth"
 	"github.com/AyKrimino/ScribeHost/repository"
 )
 
 type AuthService interface {
-	Register(req auth.RegisterRequestDto) (*auth.RegisterResponseDto, error)
-	Login(req auth.LoginRequestDto, userAgent, clientIP string) (*auth.LoginResponseDto, error)
-	RefreshToken(refreshTokenString, userAgent, clientIP string) (*auth.RefreshTokenResponseDto, error)
-	Logout(userID uint) (*auth.LogoutResponseDto, error)
+	Register(req RegisterRequestDto) (*RegisterResponseDto, error)
+	Login(req LoginRequestDto, userAgent, clientIP string) (*LoginResponseDto, error)
+	RefreshToken(refreshTokenString, userAgent, clientIP string) (*RefreshTokenResponseDto, error)
+	Logout(userID uint) (*LogoutResponseDto, error)
 	sendOTP(email string) error
-	ResendOTP(email string) (*auth.ResendOTPResponseDto, error)
-	VerifyOTP(email, otp string) (*auth.VerifyOTPResponseDto, error)
+	ResendOTP(email string) (*ResendOTPResponseDto, error)
+	VerifyOTP(email, otp string) (*VerifyOTPResponseDto, error)
 	sendResetPassword(email string) error
-	ForgotPassword(email string) (*auth.ForgotPasswordResponseDto, error)
-	ResetPassword(email, token, newPassword string) (*auth.ResetPasswordResponseDto, error)
+	ForgotPassword(email string) (*ForgotPasswordResponseDto, error)
+	ResetPassword(email, token, newPassword string) (*ResetPasswordResponseDto, error)
 }
 
 type authService struct {
@@ -46,7 +45,7 @@ func NewAuthService(
 	}
 }
 
-func (s *authService) Register(req auth.RegisterRequestDto) (*auth.RegisterResponseDto, error) {
+func (s *authService) Register(req RegisterRequestDto) (*RegisterResponseDto, error) {
 	existingUser, err := s.authRepo.FindUserByEmail(req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
@@ -73,11 +72,11 @@ func (s *authService) Register(req auth.RegisterRequestDto) (*auth.RegisterRespo
 		return nil, fmt.Errorf("failed to send otp: %w", err)
 	}
 
-	response := auth.FromEntityToRegisterResponseDto(createdUser)
+	response := FromEntityToRegisterResponseDto(createdUser)
 	return &response, nil
 }
 
-func (s *authService) Login(req auth.LoginRequestDto, userAgent, clientIP string) (*auth.LoginResponseDto, error) {
+func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*LoginResponseDto, error) {
 	existingUser, err := s.authRepo.FindUserByEmail(req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
@@ -143,20 +142,20 @@ func (s *authService) Login(req auth.LoginRequestDto, userAgent, clientIP string
 
 	refreshTokenTTL := 15 * 24 * time.Hour
 
-	res := auth.LoginResponseDto{
+	res := LoginResponseDto{
 		RawAccessToken:  accessTokenString,
 		RawRefreshToken: refreshTokenString,
 		TokenType:       "Bearer",
 		AccessTokenTTL:  accessTokenTTL,
 		RefreshTokenTTL: refreshTokenTTL,
-		User:            auth.FromEntityToRegisterResponseDto(existingUser),
+		User:            FromEntityToRegisterResponseDto(existingUser),
 		LoggedInAt:      now,
 	}
 
 	return &res, nil
 }
 
-func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP string) (*auth.RefreshTokenResponseDto, error) {
+func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP string) (*RefreshTokenResponseDto, error) {
 	hashed, err := helper.HashToken(refreshTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the refresh token: %w", err)
@@ -196,7 +195,7 @@ func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP strin
 		return nil, fmt.Errorf("failed to get access token expiry: %w", err)
 	}
 
-	res := auth.RefreshTokenResponseDto{
+	res := RefreshTokenResponseDto{
 		RawAccessToken: accessTokenString,
 		TokenType:      "Bearer",
 		AccessTokenTTL: accessTokenTTL,
@@ -205,13 +204,13 @@ func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP strin
 	return &res, nil
 }
 
-func (s *authService) Logout(userID uint) (*auth.LogoutResponseDto, error) {
+func (s *authService) Logout(userID uint) (*LogoutResponseDto, error) {
 	err := s.refreshTokenRepo.RevokeAllForUser(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to logout: unable to revoke session tokens")
 	}
 
-	return &auth.LogoutResponseDto{
+	return &LogoutResponseDto{
 		Msg: "Successfully logged out",
 	}, nil
 }
@@ -232,7 +231,7 @@ func (s *authService) sendOTP(email string) error {
 	return nil
 }
 
-func (s *authService) VerifyOTP(email, otp string) (*auth.VerifyOTPResponseDto, error) {
+func (s *authService) VerifyOTP(email, otp string) (*VerifyOTPResponseDto, error) {
 	user, err := s.authRepo.FindUserByEmail(email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user with email %s: %w", email, err)
@@ -249,20 +248,20 @@ func (s *authService) VerifyOTP(email, otp string) (*auth.VerifyOTPResponseDto, 
 		return nil, fmt.Errorf("failed to save user: %w", err)
 	}
 
-	return &auth.VerifyOTPResponseDto{
+	return &VerifyOTPResponseDto{
 		Msg: "OTP verified successfully",
 	}, nil
 }
 
-func (s *authService) ResendOTP(email string) (*auth.ResendOTPResponseDto, error) {
+func (s *authService) ResendOTP(email string) (*ResendOTPResponseDto, error) {
 	err := s.sendOTP(email)
 	if err != nil {
-		return &auth.ResendOTPResponseDto{
+		return &ResendOTPResponseDto{
 			Msg: fmt.Sprintf("failed to resend OTP to email %s: %v", email, err),
 		}, fmt.Errorf("failed to resend OTP to email %s: %w", email, err)
 	}
 
-	return &auth.ResendOTPResponseDto{
+	return &ResendOTPResponseDto{
 		Msg: fmt.Sprintf("OTP successfully resent to email %s", email),
 	}, nil
 }
@@ -288,7 +287,7 @@ func (s *authService) sendResetPassword(email string) error {
 	return nil
 }
 
-func (s *authService) ForgotPassword(email string) (*auth.ForgotPasswordResponseDto, error) {
+func (s *authService) ForgotPassword(email string) (*ForgotPasswordResponseDto, error) {
 	user, err := s.authRepo.FindUserByEmail(email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user with email %s: %w", email, err)
@@ -302,12 +301,12 @@ func (s *authService) ForgotPassword(email string) (*auth.ForgotPasswordResponse
 		return nil, err
 	}
 
-	return &auth.ForgotPasswordResponseDto{
+	return &ForgotPasswordResponseDto{
 		Msg: "reset password email was sent successfully",
 	}, nil
 }
 
-func (s *authService) ResetPassword(email, token, newPassword string) (*auth.ResetPasswordResponseDto, error) {
+func (s *authService) ResetPassword(email, token, newPassword string) (*ResetPasswordResponseDto, error) {
 	err := s.passwordResetRedisRepo.VerifyPasswordResetToken(email, token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify password reset token: %w", err)
@@ -333,7 +332,7 @@ func (s *authService) ResetPassword(email, token, newPassword string) (*auth.Res
 		return nil, fmt.Errorf("failed to update user with the new password: %w", err)
 	}
 
-	return &auth.ResetPasswordResponseDto{
+	return &ResetPasswordResponseDto{
 		Msg: "new password is reset successfully",
 	}, nil
 }

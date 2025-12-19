@@ -1,12 +1,10 @@
-package controller
+package auth
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/AyKrimino/ScribeHost/errors"
-	"github.com/AyKrimino/ScribeHost/internal/auth"
-	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,10 +20,10 @@ type AuthController interface {
 }
 
 type authController struct {
-	authService service.AuthService
+	authService AuthService
 }
 
-func NewAuthController(authService service.AuthService) AuthController {
+func NewAuthController(authService AuthService) AuthController {
 	return &authController{
 		authService: authService,
 	}
@@ -33,8 +31,8 @@ func NewAuthController(authService service.AuthService) AuthController {
 
 func (c *authController) Register(ctx *gin.Context) {
 	var (
-		req auth.RegisterRequestDto
-		res *auth.RegisterResponseDto
+		req RegisterRequestDto
+		res *RegisterResponseDto
 		err error
 	)
 
@@ -75,8 +73,8 @@ func (c *authController) Register(ctx *gin.Context) {
 
 func (c *authController) Login(ctx *gin.Context) {
 	var (
-		req auth.LoginRequestDto
-		res *auth.LoginResponseDto
+		req LoginRequestDto
+		res *LoginResponseDto
 		err error
 	)
 
@@ -145,7 +143,7 @@ func (c *authController) Login(ctx *gin.Context) {
 
 func (c *authController) RefreshToken(ctx *gin.Context) {
 	var (
-		res *auth.RefreshTokenResponseDto
+		res *RefreshTokenResponseDto
 		err error
 	)
 
@@ -235,8 +233,8 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 func (c *authController) VerifyOTP(ctx *gin.Context) {
 	var (
-		req auth.VerifyOTPRequestDto
-		res *auth.VerifyOTPResponseDto
+		req VerifyOTPRequestDto
+		res *VerifyOTPResponseDto
 		err error
 	)
 
@@ -274,8 +272,8 @@ func (c *authController) VerifyOTP(ctx *gin.Context) {
 
 func (c *authController) ResendOTP(ctx *gin.Context) {
 	var (
-		req auth.ResendOTPRequestDto
-		res *auth.ResendOTPResponseDto
+		req ResendOTPRequestDto
+		res *ResendOTPResponseDto
 		err error
 	)
 
@@ -306,8 +304,8 @@ func (c *authController) ResendOTP(ctx *gin.Context) {
 
 func (c *authController) ForgotPassword(ctx *gin.Context) {
 	var (
-		req auth.ForgotPasswordRequestDto
-		res *auth.ForgotPasswordResponseDto
+		req ForgotPasswordRequestDto
+		res *ForgotPasswordResponseDto
 		err error
 	)
 
@@ -338,8 +336,8 @@ func (c *authController) ForgotPassword(ctx *gin.Context) {
 
 func (c *authController) ResetPassword(ctx *gin.Context) {
 	var (
-		req auth.ResetPasswordRequestDto
-		res *auth.ResetPasswordResponseDto
+		req ResetPasswordRequestDto
+		res *ResetPasswordResponseDto
 		err error
 	)
 
