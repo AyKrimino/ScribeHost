@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/dto"
+	"github.com/AyKrimino/ScribeHost/internal/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 )
@@ -49,7 +49,7 @@ func RateLimiter(endpoint string) gin.HandlerFunc {
 		var identifier string
 		switch endpoint {
 		case "verify-otp":
-			var req dto.VerifyOTPRequestDto
+			var req auth.VerifyOTPRequestDto
 			if err := ctx.ShouldBindJSON(&req); err != nil {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 					"error":   "Invalid input",
