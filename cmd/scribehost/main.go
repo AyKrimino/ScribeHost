@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"context"
 	"fmt"
@@ -10,9 +9,9 @@ import (
 
 	"github.com/AyKrimino/ScribeHost/controller"
 	"github.com/AyKrimino/ScribeHost/helper"
+	"github.com/AyKrimino/ScribeHost/internal/server"
 	"github.com/AyKrimino/ScribeHost/middleware"
 	"github.com/AyKrimino/ScribeHost/repository"
-	"github.com/AyKrimino/ScribeHost/routes"
 	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -66,7 +65,7 @@ func main() {
 		middleware.Logger(),
 	)
 
-	routes.SetupRoutes(router, userController, authController)
+	server.SetupRoutes(router, userController, authController)
 
 	port := os.Getenv("PORT")
 	if port == "" {

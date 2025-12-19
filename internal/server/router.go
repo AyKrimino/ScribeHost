@@ -1,4 +1,4 @@
-package routes
+package server
 
 import (
 	"github.com/AyKrimino/ScribeHost/controller"
@@ -6,7 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupAuthRoutes(authGroup *gin.RouterGroup, authController controller.AuthController) {
+func SetupRoutes(router *gin.Engine, userController controller.UserController, authController controller.AuthController) {
+	v1 := router.Group("api/v1")
+	{
+		authGroup := v1.Group("/auth")
+		setupAuthRoutes(authGroup, authController)
+
+		userGroup := v1.Group("/users")
+		setupUserRoutes(userGroup, userController)
+	}
+}
+
+func setupAuthRoutes(authGroup *gin.RouterGroup, authController controller.AuthController) {
 	authGroup.POST(
 		"/register",
 		middleware.RateLimiter("register"),
@@ -53,4 +64,8 @@ func SetupAuthRoutes(authGroup *gin.RouterGroup, authController controller.AuthC
 		middleware.RateLimiter("reset-password"),
 		authController.ResetPassword,
 	)
+}
+
+func setupUserRoutes(userGroup *gin.RouterGroup, userController controller.UserController) {
+	userGroup.POST("", userController.CreateUser)
 }
