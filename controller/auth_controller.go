@@ -257,14 +257,14 @@ func (c *authController) VerifyOTP(ctx *gin.Context) {
 		if errors.IsInvalidOTPError(err) {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Invalid OTP",
-				"deatils": "The OTP provided is invalid. Please check the correct OTP sent to your email.",
+				"details": "The OTP provided is invalid. Please check the correct OTP sent to your email.",
 			})
 			return
 		}
 
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error":   "Verify OTP failed",
-			"deatils": "An internal error occured. Please try again later.",
+			"details": "An internal error occured. Please try again later.",
 		})
 		return
 	}
@@ -296,7 +296,7 @@ func (c *authController) ResendOTP(ctx *gin.Context) {
 
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error":   "Resend OTP failed",
-			"deatils": "An internal error occured. Please try again later.",
+			"details": "An internal error occured. Please try again later.",
 		})
 		return
 	}
