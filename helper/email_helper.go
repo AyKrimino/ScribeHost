@@ -29,8 +29,8 @@ func SendEmail(templateFile, placeholder, replacement, subject, email string) er
 
 	currYear, _, _ := time.Now().Date()
 
-	htmlBody := strings.Replace(string(template), placeholder, replacement, -1)
-	htmlBody = strings.Replace(string(template), "%%YEAR%%", string(currYear), -1)
+	htmlBody := strings.ReplaceAll(string(template), placeholder, replacement)
+	htmlBody = strings.ReplaceAll(htmlBody, "%%YEAR%%", fmt.Sprint(currYear))
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", receiverEmail)
