@@ -1,4 +1,4 @@
-package helper
+package redis
 
 import (
 	"context"
@@ -6,13 +6,12 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/redis/go-redis/v9"
 )
 
-var ctx = context.Background()
-
 func CreateRedisClientConn(ctx context.Context) (*redis.Client, error) {
-	LoadEnv()
+	helper.LoadEnv()
 
 	var (
 		redisHost     = os.Getenv("REDIS_HOST")
@@ -23,7 +22,7 @@ func CreateRedisClientConn(ctx context.Context) (*redis.Client, error) {
 
 	redisDBi, err := strconv.Atoi(redisDB)
 	if err != nil {
-		return nil, fmt.Errorf("Error converting redisDB value to integer: %w", err)
+		return nil, fmt.Errorf("error converting redisDB value to integer: %w", err)
 	}
 
 	client := redis.NewClient(&redis.Options{
@@ -34,7 +33,7 @@ func CreateRedisClientConn(ctx context.Context) (*redis.Client, error) {
 
 	_, err = client.Ping(ctx).Result()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to connect to redis: %w", err)
+		return nil, fmt.Errorf("unable to connect to redis: %w", err)
 	}
 
 	return client, nil

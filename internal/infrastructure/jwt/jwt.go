@@ -1,4 +1,4 @@
-package helper
+package jwt
 
 import (
 	"crypto/sha256"
@@ -13,9 +13,9 @@ import (
 
 var SecretKey = []byte("mystrongsecretkey")
 
-func CreateToken(userId uint, email string, role types.RoleType) (string, error) {
+func CreateToken(userID uint, email string, role types.RoleType) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   userId,
+		"sub":   userID,
 		"email": email,
 		"role":  role,
 		"iss":   "ScribeHost",
@@ -32,7 +32,7 @@ func CreateToken(userId uint, email string, role types.RoleType) (string, error)
 }
 
 func ValidateAndExtractClaims(tokenString string) (*jwt.Token, error) {
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}

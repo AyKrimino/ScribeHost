@@ -10,6 +10,7 @@ import (
 	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/internal/auth"
 	"github.com/AyKrimino/ScribeHost/internal/infrastructure/database"
+	"github.com/AyKrimino/ScribeHost/internal/infrastructure/redis"
 	"github.com/AyKrimino/ScribeHost/internal/server"
 	"github.com/AyKrimino/ScribeHost/internal/user"
 	"github.com/AyKrimino/ScribeHost/middleware"
@@ -32,7 +33,7 @@ func main() {
 
 	ctx := context.Background()
 
-	redisClient, err := helper.CreateRedisClientConn(ctx)
+	redisClient, err := redis.CreateRedisClientConn(ctx)
 	if err != nil {
 		log.Fatalf("Failed to create redis client: %v", err)
 	}

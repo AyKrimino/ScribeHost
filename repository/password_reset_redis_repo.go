@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AyKrimino/ScribeHost/helper"
+	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -28,7 +29,7 @@ func NewPasswordResetRedisRepo(client *redis.Client, ctx context.Context) Passwo
 }
 
 func (r *passwordResetRedisRepo) StorePasswordResetToken(email string, token string) error {
-	hashedToken, err := helper.HashToken(token)
+	hashedToken, err := infrajwt.HashToken(token)
 	if err != nil {
 		return fmt.Errorf("failed to hash token: %w", err)
 	}
@@ -41,7 +42,7 @@ func (r *passwordResetRedisRepo) StorePasswordResetToken(email string, token str
 }
 
 func (r *passwordResetRedisRepo) VerifyPasswordResetToken(email string, token string) error {
-	hashedToken, err := helper.HashToken(token)
+	hashedToken, err := infrajwt.HashToken(token)
 	if err != nil {
 		return fmt.Errorf("failed to hash token: %w", err)
 	}

@@ -8,6 +8,8 @@ import (
 	"github.com/AyKrimino/ScribeHost/entity"
 	"github.com/AyKrimino/ScribeHost/errors"
 	"github.com/AyKrimino/ScribeHost/helper"
+	em "github.com/AyKrimino/ScribeHost/internal/infrastructure/email"
+	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
 	"github.com/AyKrimino/ScribeHost/repository"
 )
 
@@ -27,14 +29,14 @@ type AuthService interface {
 type authService struct {
 	authRepo               repository.AuthRepository
 	refreshTokenRepo       repository.RefreshTokenRepository
-	otpRedisRepo           repository.OtpRedisRepo
+	otpRedisRepo           OtpRedisRepo
 	passwordResetRedisRepo repository.PasswordResetRedisRepo
 }
 
 func NewAuthService(
 	authRepo repository.AuthRepository,
 	refreshTokenRepo repository.RefreshTokenRepository,
-	otpRedisRepo repository.OtpRedisRepo,
+	otpRedisRepo OtpRedisRepo,
 	passwordResetRedisRepo repository.PasswordResetRedisRepo,
 ) AuthService {
 	return &authService{
@@ -98,13 +100,13 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 		return nil, fmt.Errorf("email Verification required")
 	}
 
-	accessTokenString, err := helper.CreateToken(existingUser.ID, existingUser.Email, existingUser.Role)
+	accessTokenString, err := infrajwt.CreateToken(existingUser.ID, existingUser.Email, existingUser.Role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create token: %w", err)
 	}
 
 	refreshTokenString := rand.Text()
-	refreshTokenHashed, err := helper.HashToken(refreshTokenString)
+	refreshTokenHashed, err := infrajwt.HashToken(refreshTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash refresh token: %w", err)
 	}
@@ -131,11 +133,11 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 		return nil, fmt.Errorf("failed to update user last login: %w", err)
 	}
 
-	parsedAccessToken, err := helper.ValidateAndExtractClaims(accessTokenString)
+	parsedAccessToken, err := infrajwt.ValidateAndExtractClaims(accessTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse generated access token for expiry: %w", err)
 	}
-	_, accessTokenTTL, err := helper.GetTokenExpiry(parsedAccessToken)
+	_, accessTokenTTL, err := infrajwt.GetTokenExpiry(parsedAccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access token expiry: %w", err)
 	}
@@ -156,7 +158,7 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 }
 
 func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP string) (*RefreshTokenResponseDto, error) {
-	hashed, err := helper.HashToken(refreshTokenString)
+	hashed, err := infrajwt.HashToken(refreshTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the refresh token: %w", err)
 	}
@@ -181,16 +183,16 @@ func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP strin
 		return nil, errors.NewInvalidTokenError("refreshToken", "associated user not found")
 	}
 
-	accessTokenString, err := helper.CreateToken(user.ID, user.Email, user.Role)
+	accessTokenString, err := infrajwt.CreateToken(user.ID, user.Email, user.Role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create token: %w", err)
 	}
 
-	parsedAccessToken, err := helper.ValidateAndExtractClaims(accessTokenString)
+	parsedAccessToken, err := infrajwt.ValidateAndExtractClaims(accessTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse generated access token for expiry: %w", err)
 	}
-	_, accessTokenTTL, err := helper.GetTokenExpiry(parsedAccessToken)
+	_, accessTokenTTL, err := infrajwt.GetTokenExpiry(parsedAccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access token expiry: %w", err)
 	}
@@ -223,7 +225,7 @@ func (s *authService) sendOTP(email string) error {
 		return fmt.Errorf("failed to store OTP: %w", err)
 	}
 
-	err = helper.SendOTPByEmail(email, otp)
+	err = em.SendOTPByEmail(email, otp)
 	if err != nil {
 		return fmt.Errorf("failed to send otp to email %s: %w", email, err)
 	}
@@ -279,7 +281,7 @@ func (s *authService) sendResetPassword(email string) error {
 		return fmt.Errorf("failed to store token: %w", err)
 	}
 
-	err = helper.SendPasswordResetEmail(email, resetLink)
+	err = em.SendPasswordResetEmail(email, resetLink)
 	if err != nil {
 		return fmt.Errorf("failed to send token to email %s: %w", email, err)
 	}

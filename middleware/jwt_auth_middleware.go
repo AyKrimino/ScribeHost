@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/AyKrimino/ScribeHost/helper"
+	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -29,7 +30,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-		token, err := helper.ValidateAndExtractClaims(tokenString)
+		token, err := infrajwt.ValidateAndExtractClaims(tokenString)
 		if err != nil {
 			log.Printf("JWT Middleware: Token validation failed: %v", err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -47,7 +48,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userID, err := helper.GetUserIDFromClaims(claims)
+		userID, err := infrajwt.GetUserIDFromClaims(claims)
 		if err != nil {
 			log.Printf("JWT Middleware: Failed to extract user ID: %v", err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -56,7 +57,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		role, err := helper.GetRoleFromClaims(claims)
+		role, err := infrajwt.GetRoleFromClaims(claims)
 		if err != nil {
 			log.Printf("JWT Middleware: Failed to extract role: %v", err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -65,7 +66,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		email, err := helper.GetEmailFromClaims(claims)
+		email, err := infrajwt.GetEmailFromClaims(claims)
 		if err != nil {
 			log.Printf("JWT Middleware: Failed to extract email: %v", err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
