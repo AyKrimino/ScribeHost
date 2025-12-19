@@ -10,6 +10,7 @@ import (
 	"github.com/AyKrimino/ScribeHost/controller"
 	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/internal/auth"
+	"github.com/AyKrimino/ScribeHost/internal/infrastructure/database"
 	"github.com/AyKrimino/ScribeHost/internal/server"
 	"github.com/AyKrimino/ScribeHost/middleware"
 	"github.com/AyKrimino/ScribeHost/repository"
@@ -25,7 +26,7 @@ func main() {
 
 	helper.LoadEnv()
 
-	err = repository.InitDB()
+	db, err := database.InitMySQLDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
@@ -42,7 +43,7 @@ func main() {
 
 	// repositories
 	userRepo := repository.NewUserRepository()
-	authRepo := repository.NewAuthRepository()
+	authRepo := auth.NewAuthRepository(db)
 	refreshTokenRepo := repository.NewRefreshTokenRepository()
 	otpRedisRepo := repository.NewOtpRedisRepo(redisClient, ctx)
 	passwordResetRedisRepo := repository.NewPasswordResetRedisRepo(redisClient, ctx)

@@ -1,4 +1,4 @@
-package repository
+package database
 
 import (
 	"fmt"
@@ -10,10 +10,9 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-var DB *gorm.DB
-
-func InitDB() error {
+func InitMySQLDB() (*gorm.DB, error) {
 	var err error
+	var db *gorm.DB
 
 	helper.LoadEnv()
 
@@ -34,19 +33,19 @@ func InitDB() error {
 		databaseName,
 	)
 
-	DB, err = gorm.Open("mysql", dsn)
+	db, err = gorm.Open("mysql", dsn)
 	if err != nil {
-		return fmt.Errorf("failed to connect database: %w", err)
+		return nil, fmt.Errorf("failed to connect database: %w", err)
 	}
 
-	dbResult := DB.AutoMigrate(
+	dbResult := db.AutoMigrate(
 		&entity.User{},
 		&entity.Profile{},
 		&entity.RefreshToken{},
 	)
 	if dbResult.Error != nil {
-		return fmt.Errorf("failed to migrate database: %w", dbResult.Error)
+		return nil, fmt.Errorf("failed to migrate database: %w", dbResult.Error)
 	}
 
-	return nil
+	return db, nil
 }
