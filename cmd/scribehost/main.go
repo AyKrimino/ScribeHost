@@ -41,7 +41,7 @@ func main() {
 	middleware.SetRedisClient(redisClient)
 
 	// repositories
-	userRepo := repository.NewUserRepository()
+	userRepo := user.NewUserRepository(db)
 	authRepo := auth.NewAuthRepository(db)
 	refreshTokenRepo := repository.NewRefreshTokenRepository()
 	otpRedisRepo := auth.NewOtpRedisRepo(redisClient, ctx)

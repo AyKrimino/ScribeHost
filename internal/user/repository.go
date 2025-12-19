@@ -1,4 +1,4 @@
-package repository
+package user
 
 import (
 	"fmt"
@@ -15,9 +15,9 @@ type userRepository struct {
 	db *gorm.DB
 }
 
-func NewUserRepository() UserRepository {
+func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{
-		db: DB,
+		db: db,
 	}
 }
 
