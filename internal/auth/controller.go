@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AyKrimino/ScribeHost/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,7 +48,7 @@ func (c *authController) Register(ctx *gin.Context) {
 
 	res, err = c.authService.Register(req)
 	if err != nil {
-		if errors.IsObjectAlreadyExists(err) {
+		if IsObjectAlreadyExists(err) {
 			log.Printf("Registration conflict: %v", err)
 
 			ctx.JSON(http.StatusConflict, gin.H{
@@ -96,7 +95,7 @@ func (c *authController) Login(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("Login error for %s: %v", req.Email, err)
 
-		if errors.IsObjectNotFoundError(err) || errors.IsInvalidCredentialsError(err) {
+		if IsObjectNotFoundError(err) || IsInvalidCredentialsError(err) {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "Invalid credentials",
 				"details": "The email or password you entered is incorrect.",
@@ -104,7 +103,7 @@ func (c *authController) Login(ctx *gin.Context) {
 			return
 		}
 
-		if errors.IsObjectNotActiveError(err) {
+		if IsObjectNotActiveError(err) {
 			ctx.JSON(http.StatusForbidden, gin.H{
 				"error":   "Account inactive",
 				"details": "Your account is currently inactive. Please contact support.",
@@ -172,7 +171,7 @@ func (c *authController) RefreshToken(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("Refresh error: %v", err)
 
-		if errors.IsInvalidTokenError(err) {
+		if IsInvalidTokenError(err) {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "Invalid Token",
 				"message": "The provided refresh token is invalid or expired.",
@@ -252,7 +251,7 @@ func (c *authController) VerifyOTP(ctx *gin.Context) {
 	res, err = c.authService.VerifyOTP(req.Email, req.OTP)
 	if err != nil {
 		log.Printf("Service error: failed to verify otp with email %s: %v", req.Email, err)
-		if errors.IsInvalidOTPError(err) {
+		if IsInvalidOTPError(err) {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Invalid OTP",
 				"details": "The OTP provided is invalid. Please check the correct OTP sent to your email.",

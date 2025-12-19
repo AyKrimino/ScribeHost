@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/AyKrimino/ScribeHost/entity"
-	"github.com/AyKrimino/ScribeHost/errors"
 	"github.com/AyKrimino/ScribeHost/helper"
 	em "github.com/AyKrimino/ScribeHost/internal/infrastructure/email"
 	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
@@ -27,14 +26,14 @@ type AuthService interface {
 }
 
 type authService struct {
-	authRepo               repository.AuthRepository
+	authRepo               AuthRepository
 	refreshTokenRepo       repository.RefreshTokenRepository
 	otpRedisRepo           OtpRedisRepo
 	passwordResetRedisRepo repository.PasswordResetRedisRepo
 }
 
 func NewAuthService(
-	authRepo repository.AuthRepository,
+	authRepo AuthRepository,
 	refreshTokenRepo repository.RefreshTokenRepository,
 	otpRedisRepo OtpRedisRepo,
 	passwordResetRedisRepo repository.PasswordResetRedisRepo,
@@ -53,7 +52,7 @@ func (s *authService) Register(req RegisterRequestDto) (*RegisterResponseDto, er
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 	if existingUser != nil {
-		return nil, errors.NewObjectAlreadyExistsError("user", "email", req.Email)
+		return nil, NewObjectAlreadyExistsError("user", "email", req.Email)
 	}
 
 	user := req.ToEntity()
@@ -84,16 +83,16 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 	if existingUser == nil {
-		return nil, errors.NewObjectNotFoundError("user", "email", req.Email)
+		return nil, NewObjectNotFoundError("user", "email", req.Email)
 	}
 
 	isPasswordValid := helper.ComparePassword(existingUser.PasswordHash, []byte(req.Password))
 	if !isPasswordValid {
-		return nil, errors.NewInvalidCredentialsError("password")
+		return nil, NewInvalidCredentialsError("password")
 	}
 
 	if !existingUser.IsActive {
-		return nil, errors.NewObjectNotActiveError("user")
+		return nil, NewObjectNotActiveError("user")
 	}
 
 	if !existingUser.EmailVerified {
@@ -168,11 +167,11 @@ func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP strin
 		return nil, fmt.Errorf("failed to lookup refresh token: %w", err)
 	}
 	if refreshToken == nil {
-		return nil, errors.NewInvalidTokenError("refreshToken", "refresh token not found")
+		return nil, NewInvalidTokenError("refreshToken", "refresh token not found")
 	}
 
 	if !refreshToken.IsValid() {
-		return nil, errors.NewInvalidTokenError("refreshToken", "refresh token expired")
+		return nil, NewInvalidTokenError("refreshToken", "refresh token expired")
 	}
 
 	user, err := s.authRepo.FindUserById(refreshToken.UserID)
@@ -180,7 +179,7 @@ func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP strin
 		return nil, fmt.Errorf("failed to retrieve user associated with refresh token: %w", err)
 	}
 	if user == nil {
-		return nil, errors.NewInvalidTokenError("refreshToken", "associated user not found")
+		return nil, NewInvalidTokenError("refreshToken", "associated user not found")
 	}
 
 	accessTokenString, err := infrajwt.CreateToken(user.ID, user.Email, user.Role)
