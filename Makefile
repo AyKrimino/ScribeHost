@@ -8,7 +8,7 @@ PROD_ENV=.env.production
 build:
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BINARY_DIR)
-	go build -o $(BINARY_PATH) server.go
+	go build -o $(BINARY_PATH) cmd/scribehost/main.go
 	@echo "Build complete."
 
 run: build
