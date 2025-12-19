@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/internal/auth"
+	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
 	"github.com/AyKrimino/ScribeHost/internal/infrastructure/database"
 	"github.com/AyKrimino/ScribeHost/internal/infrastructure/redis"
 	"github.com/AyKrimino/ScribeHost/internal/middleware"
@@ -23,7 +23,7 @@ func main() {
 
 	setupLoggerOutput()
 
-	helper.LoadEnv()
+	config.LoadEnv()
 
 	db, err := database.InitMySQLDB()
 	if err != nil {

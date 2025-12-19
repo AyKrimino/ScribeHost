@@ -3,8 +3,7 @@ package user
 import (
 	"fmt"
 
-	"github.com/AyKrimino/ScribeHost/helper"
-	"github.com/AyKrimino/ScribeHost/repository"
+	"github.com/AyKrimino/ScribeHost/internal/auth"
 )
 
 type UserService interface {
@@ -12,10 +11,10 @@ type UserService interface {
 }
 
 type userService struct {
-	userRepo repository.UserRepository
+	userRepo UserRepository
 }
 
-func NewUserService(userRepo repository.UserRepository) UserService {
+func NewUserService(userRepo UserRepository) UserService {
 	return &userService{
 		userRepo: userRepo,
 	}
@@ -27,7 +26,7 @@ func (s *userService) CreateUser(userReq CreateUserRequestDto) (*UserResponseDto
 		return nil, fmt.Errorf("conversion error: %w", err)
 	}
 
-	hashed, err := helper.HashPassword(userReq.Password)
+	hashed, err := auth.HashPassword(userReq.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}

@@ -6,12 +6,12 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/AyKrimino/ScribeHost/helper"
+	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
 	"github.com/redis/go-redis/v9"
 )
 
 func CreateRedisClientConn(ctx context.Context) (*redis.Client, error) {
-	helper.LoadEnv()
+	config.LoadEnv()
 
 	var (
 		redisHost     = os.Getenv("REDIS_HOST")

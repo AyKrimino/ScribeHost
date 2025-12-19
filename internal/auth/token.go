@@ -1,4 +1,4 @@
-package helper
+package auth
 
 import (
 	cryptoRand "crypto/rand"

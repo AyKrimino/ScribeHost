@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/internal/entity"
 	em "github.com/AyKrimino/ScribeHost/internal/infrastructure/email"
 	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
-	"github.com/AyKrimino/ScribeHost/repository"
 )
 
 type AuthService interface {
@@ -27,16 +25,16 @@ type AuthService interface {
 
 type authService struct {
 	authRepo               AuthRepository
-	refreshTokenRepo       repository.RefreshTokenRepository
+	refreshTokenRepo       RefreshTokenRepository
 	otpRedisRepo           OtpRedisRepo
-	passwordResetRedisRepo repository.PasswordResetRedisRepo
+	passwordResetRedisRepo PasswordResetRedisRepo
 }
 
 func NewAuthService(
 	authRepo AuthRepository,
-	refreshTokenRepo repository.RefreshTokenRepository,
+	refreshTokenRepo RefreshTokenRepository,
 	otpRedisRepo OtpRedisRepo,
-	passwordResetRedisRepo repository.PasswordResetRedisRepo,
+	passwordResetRedisRepo PasswordResetRedisRepo,
 ) AuthService {
 	return &authService{
 		authRepo:               authRepo,
@@ -57,7 +55,7 @@ func (s *authService) Register(req RegisterRequestDto) (*RegisterResponseDto, er
 
 	user := req.ToEntity()
 
-	hashed, err := helper.HashPassword(req.Password)
+	hashed, err := HashPassword(req.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -86,7 +84,7 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 		return nil, NewObjectNotFoundError("user", "email", req.Email)
 	}
 
-	isPasswordValid := helper.ComparePassword(existingUser.PasswordHash, []byte(req.Password))
+	isPasswordValid := ComparePassword(existingUser.PasswordHash, []byte(req.Password))
 	if !isPasswordValid {
 		return nil, NewInvalidCredentialsError("password")
 	}
@@ -217,7 +215,7 @@ func (s *authService) Logout(userID uint) (*LogoutResponseDto, error) {
 }
 
 func (s *authService) sendOTP(email string) error {
-	otp := helper.GenerateOTP()
+	otp := GenerateOTP()
 
 	err := s.otpRedisRepo.StoreOTP(email, otp)
 	if err != nil {
@@ -268,7 +266,7 @@ func (s *authService) ResendOTP(email string) (*ResendOTPResponseDto, error) {
 }
 
 func (s *authService) sendResetPassword(email string) error {
-	token, err := helper.GeneratePasswordResetToken()
+	token, err := GeneratePasswordResetToken()
 	if err != nil {
 		return fmt.Errorf("failed to generate password reset token: %w", err)
 	}
@@ -321,7 +319,7 @@ func (s *authService) ResetPassword(email, token, newPassword string) (*ResetPas
 		return nil, fmt.Errorf("user with email %s does not exist", email)
 	}
 
-	hashedPassword, err := helper.HashPassword(newPassword)
+	hashedPassword, err := HashPassword(newPassword)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the new password: %w", err)
 	}

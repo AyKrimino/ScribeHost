@@ -7,13 +7,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/types"
+	"github.com/AyKrimino/ScribeHost/internal/entity"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 var SecretKey = []byte("mystrongsecretkey")
 
-func CreateToken(userID uint, email string, role types.RoleType) (string, error) {
+func CreateToken(userID uint, email string, role entity.RoleType) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   userID,
 		"email": email,

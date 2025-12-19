@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/helper"
+	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
 	"gopkg.in/gomail.v2"
 )
 
 func SendEmail(templateFile, placeholder, replacement, subject, email string) error {
-	helper.LoadEnv()
+	config.LoadEnv()
 
 	host := os.Getenv("EMAIL_SMTP_HOST")
 	port, err := strconv.Atoi(os.Getenv("EMAIL_SMTP_PORT"))

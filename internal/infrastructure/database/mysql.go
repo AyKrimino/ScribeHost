@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/internal/entity"
+	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -14,7 +14,7 @@ func InitMySQLDB() (*gorm.DB, error) {
 	var err error
 	var db *gorm.DB
 
-	helper.LoadEnv()
+	config.LoadEnv()
 
 	var (
 		databaseUsername = os.Getenv("DB_USERNAME")

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -28,14 +27,14 @@ func NewOtpRedisRepo(client *redis.Client, ctx context.Context) OtpRedisRepo {
 }
 
 func (r *otpRedisRepo) StoreOTP(email, otp string) error {
-	hashedOTP := helper.HashOTP(otp)
+	hashedOTP := HashOTP(otp)
 	err := r.client.Set(r.ctx, email, hashedOTP, 5*time.Minute).Err()
 
 	return err
 }
 
 func (r *otpRedisRepo) VerifyOTP(email, otp string) error {
-	hashedOTP := helper.HashOTP(otp)
+	hashedOTP := HashOTP(otp)
 	storedOTP, err := r.client.Get(r.ctx, email).Result()
 	if err != nil {
 		return NewInvalidOTPError("email key not found.")
