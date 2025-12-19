@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AyKrimino/ScribeHost/dto"
 	"github.com/AyKrimino/ScribeHost/errors"
+	"github.com/AyKrimino/ScribeHost/internal/auth"
 	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
 )
@@ -33,8 +33,8 @@ func NewAuthController(authService service.AuthService) AuthController {
 
 func (c *authController) Register(ctx *gin.Context) {
 	var (
-		req dto.RegisterRequestDto
-		res *dto.RegisterResponseDto
+		req auth.RegisterRequestDto
+		res *auth.RegisterResponseDto
 		err error
 	)
 
@@ -75,8 +75,8 @@ func (c *authController) Register(ctx *gin.Context) {
 
 func (c *authController) Login(ctx *gin.Context) {
 	var (
-		req dto.LoginRequestDto
-		res *dto.LoginResponseDto
+		req auth.LoginRequestDto
+		res *auth.LoginResponseDto
 		err error
 	)
 
@@ -145,7 +145,7 @@ func (c *authController) Login(ctx *gin.Context) {
 
 func (c *authController) RefreshToken(ctx *gin.Context) {
 	var (
-		res *dto.RefreshTokenResponseDto
+		res *auth.RefreshTokenResponseDto
 		err error
 	)
 
@@ -235,8 +235,8 @@ func (c *authController) Logout(ctx *gin.Context) {
 
 func (c *authController) VerifyOTP(ctx *gin.Context) {
 	var (
-		req dto.VerifyOTPRequestDto
-		res *dto.VerifyOTPResponseDto
+		req auth.VerifyOTPRequestDto
+		res *auth.VerifyOTPResponseDto
 		err error
 	)
 
@@ -274,8 +274,8 @@ func (c *authController) VerifyOTP(ctx *gin.Context) {
 
 func (c *authController) ResendOTP(ctx *gin.Context) {
 	var (
-		req dto.ResendOTPRequestDto
-		res *dto.ResendOTPResponseDto
+		req auth.ResendOTPRequestDto
+		res *auth.ResendOTPResponseDto
 		err error
 	)
 
@@ -306,8 +306,8 @@ func (c *authController) ResendOTP(ctx *gin.Context) {
 
 func (c *authController) ForgotPassword(ctx *gin.Context) {
 	var (
-		req dto.ForgotPasswordRequestDto
-		res *dto.ForgotPasswordResponseDto
+		req auth.ForgotPasswordRequestDto
+		res *auth.ForgotPasswordResponseDto
 		err error
 	)
 
@@ -338,8 +338,8 @@ func (c *authController) ForgotPassword(ctx *gin.Context) {
 
 func (c *authController) ResetPassword(ctx *gin.Context) {
 	var (
-		req dto.ResetPasswordRequestDto
-		res *dto.ResetPasswordResponseDto
+		req auth.ResetPasswordRequestDto
+		res *auth.ResetPasswordResponseDto
 		err error
 	)
 
