@@ -45,7 +45,7 @@ func main() {
 	userRepo := repository.NewUserRepository()
 	authRepo := auth.NewAuthRepository(db)
 	refreshTokenRepo := repository.NewRefreshTokenRepository()
-	otpRedisRepo := repository.NewOtpRedisRepo(redisClient, ctx)
+	otpRedisRepo := auth.NewOtpRedisRepo(redisClient, ctx)
 	passwordResetRedisRepo := repository.NewPasswordResetRedisRepo(redisClient, ctx)
 
 	// services
