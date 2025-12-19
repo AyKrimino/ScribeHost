@@ -1,4 +1,4 @@
-package types
+package entity
 
 import (
 	"database/sql/driver"
@@ -12,7 +12,7 @@ const (
 	GenderFemale GenderType = "female"
 )
 
-func (g *GenderType) Scan(value interface{}) error {
+func (g *GenderType) Scan(value any) error {
 	if value == nil {
 		*g = GenderMale
 		return nil

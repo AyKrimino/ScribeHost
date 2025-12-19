@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/AyKrimino/ScribeHost/internal/entity"
-	"github.com/AyKrimino/ScribeHost/types"
 )
 
 type CreateUserRequestDto struct {
@@ -14,13 +13,13 @@ type CreateUserRequestDto struct {
 }
 
 type CreateProfileRequestDto struct {
-	FirstName   string           `json:"first_name" binding:"required"`
-	LastName    string           `json:"last_name" binding:"required"`
-	Phone       string           `json:"phone"`
-	Address     string           `json:"address"`
-	DateOfBirth *time.Time       `json:"date_of_birth"`
-	Gender      types.GenderType `json:"gender" binding:"omitempty,oneof=male female"`
-	AvatarURL   string           `json:"avatar_url" binding:"omitempty,url"`
+	FirstName   string            `json:"first_name" binding:"required"`
+	LastName    string            `json:"last_name" binding:"required"`
+	Phone       string            `json:"phone"`
+	Address     string            `json:"address"`
+	DateOfBirth *time.Time        `json:"date_of_birth"`
+	Gender      entity.GenderType `json:"gender" binding:"omitempty,oneof=male female"`
+	AvatarURL   string            `json:"avatar_url" binding:"omitempty,url"`
 }
 
 func (req *CreateUserRequestDto) ToEntity() (entity.User, error) {
@@ -42,7 +41,7 @@ func (req *CreateUserRequestDto) ToEntity() (entity.User, error) {
 type UserResponseDto struct {
 	ID        uint               `json:"id"`
 	Email     string             `json:"email"`
-	Role      types.RoleType     `json:"role"`
+	Role      entity.RoleType    `json:"role"`
 	IsActive  bool               `json:"is_active"`
 	CreatedAt time.Time          `json:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at"`
@@ -50,17 +49,17 @@ type UserResponseDto struct {
 }
 
 type ProfileResponseDto struct {
-	ID          uint             `json:"id"`
-	UserID      uint             `json:"user_id"`
-	FirstName   string           `json:"first_name"`
-	LastName    string           `json:"last_name"`
-	AvatarURL   string           `json:"avatar_url,omitempty"`
-	Phone       string           `json:"phone,omitempty"`
-	Address     string           `json:"address,omitempty"`
-	DateOfBirth *time.Time       `json:"date_of_birth,omitempty"`
-	Gender      types.GenderType `json:"gender"`
-	CreatedAt   time.Time        `json:"created_at"`
-	UpdatedAt   time.Time        `json:"updated_at"`
+	ID          uint              `json:"id"`
+	UserID      uint              `json:"user_id"`
+	FirstName   string            `json:"first_name"`
+	LastName    string            `json:"last_name"`
+	AvatarURL   string            `json:"avatar_url,omitempty"`
+	Phone       string            `json:"phone,omitempty"`
+	Address     string            `json:"address,omitempty"`
+	DateOfBirth *time.Time        `json:"date_of_birth,omitempty"`
+	Gender      entity.GenderType `json:"gender"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
 }
 
 func FromEntity(user *entity.User) UserResponseDto {

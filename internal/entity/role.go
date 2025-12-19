@@ -1,4 +1,4 @@
-package types
+package entity
 
 import (
 	"database/sql/driver"
@@ -13,7 +13,7 @@ const (
 	ReaderRole RoleType = "reader"
 )
 
-func (r *RoleType) Scan(value interface{}) error {
+func (r *RoleType) Scan(value any) error {
 	if value == nil {
 		*r = AuthorType
 		return nil
