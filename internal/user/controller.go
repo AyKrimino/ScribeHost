@@ -1,10 +1,8 @@
-package controller
+package user
 
 import (
 	"net/http"
 
-	"github.com/AyKrimino/ScribeHost/dto"
-	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,10 +11,10 @@ type UserController interface {
 }
 
 type userController struct {
-	userService service.UserService
+	userService UserService
 }
 
-func NewUserController(userService service.UserService) UserController {
+func NewUserController(userService UserService) UserController {
 	return &userController{
 		userService: userService,
 	}
@@ -24,8 +22,8 @@ func NewUserController(userService service.UserService) UserController {
 
 func (c *userController) CreateUser(ctx *gin.Context) {
 	var (
-		req dto.CreateUserRequestDto
-		res *dto.UserResponseDto
+		req CreateUserRequestDto
+		res *UserResponseDto
 		err error
 	)
 

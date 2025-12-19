@@ -7,14 +7,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/AyKrimino/ScribeHost/controller"
 	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/internal/auth"
 	"github.com/AyKrimino/ScribeHost/internal/infrastructure/database"
 	"github.com/AyKrimino/ScribeHost/internal/server"
+	"github.com/AyKrimino/ScribeHost/internal/user"
 	"github.com/AyKrimino/ScribeHost/middleware"
 	"github.com/AyKrimino/ScribeHost/repository"
-	"github.com/AyKrimino/ScribeHost/service"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -49,7 +48,7 @@ func main() {
 	passwordResetRedisRepo := repository.NewPasswordResetRedisRepo(redisClient, ctx)
 
 	// services
-	userService := service.NewUserService(userRepo)
+	userService := user.NewUserService(userRepo)
 	authService := auth.NewAuthService(
 		authRepo,
 		refreshTokenRepo,
@@ -58,7 +57,7 @@ func main() {
 	)
 
 	// controllers
-	userController := controller.NewUserController(userService)
+	userController := user.NewUserController(userService)
 	authController := auth.NewAuthController(authService)
 
 	router := gin.New()

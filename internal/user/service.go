@@ -1,15 +1,14 @@
-package service
+package user
 
 import (
 	"fmt"
 
-	"github.com/AyKrimino/ScribeHost/dto"
 	"github.com/AyKrimino/ScribeHost/helper"
 	"github.com/AyKrimino/ScribeHost/repository"
 )
 
 type UserService interface {
-	CreateUser(userReq dto.CreateUserRequestDto) (*dto.UserResponseDto, error)
+	CreateUser(userReq CreateUserRequestDto) (*UserResponseDto, error)
 }
 
 type userService struct {
@@ -22,7 +21,7 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	}
 }
 
-func (s *userService) CreateUser(userReq dto.CreateUserRequestDto) (*dto.UserResponseDto, error) {
+func (s *userService) CreateUser(userReq CreateUserRequestDto) (*UserResponseDto, error) {
 	user, err := userReq.ToEntity()
 	if err != nil {
 		return nil, fmt.Errorf("conversion error: %w", err)
@@ -39,6 +38,6 @@ func (s *userService) CreateUser(userReq dto.CreateUserRequestDto) (*dto.UserRes
 		return nil, fmt.Errorf("failed to save user to database: %w", err)
 	}
 
-	response := dto.FromEntity(createdUser)
+	response := FromEntity(createdUser)
 	return &response, nil
 }
