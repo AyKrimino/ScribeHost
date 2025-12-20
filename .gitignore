@@ -79,3 +79,6 @@ docker-compose.override.yml
 *.dll
 *.so
 *.dylib
+
+# curl cookies file for local development
+cookies.txt
