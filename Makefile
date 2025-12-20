@@ -18,7 +18,7 @@ run: build
 dev:
 	@echo "Starting development server with Air..."
 	@which air > /dev/null || (echo "Error: 'air' not found. Install it with 'go install github.com/air-verse/air@latest'"; exit 1)
-	air
+	air -c .air.toml
 
 # Usage: make migrate-create name=your_migration_name
 migrate-create:
