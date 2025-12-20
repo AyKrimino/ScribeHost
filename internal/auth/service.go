@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/AyKrimino/ScribeHost/internal/entity"
-	em "github.com/AyKrimino/ScribeHost/internal/infrastructure/email"
-	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
+	em "github.com/AyKrimino/ScribeHost/internal/infra/email"
+	infrajwt "github.com/AyKrimino/ScribeHost/internal/infra/jwt"
 )
 
 type AuthService interface {

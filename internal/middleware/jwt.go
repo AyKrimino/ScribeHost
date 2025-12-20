@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
+	infrajwt "github.com/AyKrimino/ScribeHost/internal/infra/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )

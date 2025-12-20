@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
+	"github.com/AyKrimino/ScribeHost/internal/infra/config"
 	"github.com/redis/go-redis/v9"
 )
 

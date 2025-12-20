@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/AyKrimino/ScribeHost/internal/auth"
-	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
-	"github.com/AyKrimino/ScribeHost/internal/infrastructure/database"
-	"github.com/AyKrimino/ScribeHost/internal/infrastructure/redis"
+	"github.com/AyKrimino/ScribeHost/internal/infra/config"
+	"github.com/AyKrimino/ScribeHost/internal/infra/database"
+	"github.com/AyKrimino/ScribeHost/internal/infra/redis"
 	"github.com/AyKrimino/ScribeHost/internal/middleware"
 	"github.com/AyKrimino/ScribeHost/internal/server"
 	"github.com/AyKrimino/ScribeHost/internal/user"

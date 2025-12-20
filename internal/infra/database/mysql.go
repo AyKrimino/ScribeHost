@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/AyKrimino/ScribeHost/internal/entity"
-	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
+	"github.com/AyKrimino/ScribeHost/internal/infra/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )

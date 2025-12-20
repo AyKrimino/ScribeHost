@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	infrajwt "github.com/AyKrimino/ScribeHost/internal/infrastructure/jwt"
+	infrajwt "github.com/AyKrimino/ScribeHost/internal/infra/jwt"
 	"github.com/redis/go-redis/v9"
 )
 

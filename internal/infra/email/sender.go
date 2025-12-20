@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AyKrimino/ScribeHost/internal/infrastructure/config"
+	"github.com/AyKrimino/ScribeHost/internal/infra/config"
 	"gopkg.in/gomail.v2"
 )
 
