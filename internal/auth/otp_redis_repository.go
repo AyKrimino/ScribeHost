@@ -28,14 +28,23 @@ func NewOtpRedisRepo(client *redis.Client, ctx context.Context) OtpRedisRepo {
 }
 
 func (r *otpRedisRepo) StoreOTP(email, otp string) error {
-	hashedOTP := crypto.HashOTP(otp)
-	err := r.client.Set(r.ctx, email, hashedOTP, 5*time.Minute).Err()
+	hashedOTP, err := crypto.HashSHA256(otp)
+	if err != nil {
+		return err
+	}
 
-	return err
+	if err := r.client.Set(r.ctx, email, hashedOTP, 5*time.Minute).Err(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *otpRedisRepo) VerifyOTP(email, otp string) error {
-	hashedOTP := crypto.HashOTP(otp)
+	hashedOTP, err := crypto.HashSHA256(otp)
+	if err != nil {
+		return err
+	}
+
 	storedOTP, err := r.client.Get(r.ctx, email).Result()
 	if err != nil {
 		return NewInvalidOTPError("email key not found.")

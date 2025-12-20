@@ -104,7 +104,7 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 	}
 
 	refreshTokenString := rand.Text()
-	refreshTokenHashed, err := infrajwt.HashToken(refreshTokenString)
+	refreshTokenHashed, err := crypto.HashSHA256(refreshTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash refresh token: %w", err)
 	}
@@ -156,7 +156,7 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 }
 
 func (s *authService) RefreshToken(refreshTokenString, userAgent, clientIP string) (*RefreshTokenResponseDto, error) {
-	hashed, err := infrajwt.HashToken(refreshTokenString)
+	hashed, err := crypto.HashSHA256(refreshTokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the refresh token: %w", err)
 	}

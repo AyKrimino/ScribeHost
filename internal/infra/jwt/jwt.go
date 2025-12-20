@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -145,17 +144,4 @@ func GetEmailFromClaims(claims jwt.MapClaims) (string, error) {
 	}
 
 	return email, nil
-}
-
-func HashToken(token string) (string, error) {
-	hasher := sha256.New()
-
-	_, err := hasher.Write([]byte(token))
-	if err != nil {
-		return "", err
-	}
-
-	hashedBytes := hasher.Sum(nil)
-
-	return fmt.Sprintf("%x", hashedBytes), nil
 }

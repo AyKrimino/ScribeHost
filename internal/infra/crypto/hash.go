@@ -5,11 +5,14 @@ import (
 	"encoding/hex"
 )
 
-func HashOTP(otp string) string {
-	h := sha256.New()
+func HashSHA256(input string) (string, error) {
+	hasher := sha256.New()
 
-	h.Write([]byte(otp))
-	b := h.Sum(nil)
+	_, err := hasher.Write([]byte(input))
+	if err != nil {
+		return "", err
+	}
 
-	return hex.EncodeToString(b)
+	sum := hasher.Sum(nil)
+	return hex.EncodeToString(sum), nil
 }
