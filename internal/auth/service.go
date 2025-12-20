@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AyKrimino/ScribeHost/internal/entity"
+	"github.com/AyKrimino/ScribeHost/internal/infra/crypto"
 	em "github.com/AyKrimino/ScribeHost/internal/infra/email"
 	infrajwt "github.com/AyKrimino/ScribeHost/internal/infra/jwt"
 )
@@ -55,7 +56,7 @@ func (s *authService) Register(req RegisterRequestDto) (*RegisterResponseDto, er
 
 	user := req.ToEntity()
 
-	hashed, err := HashPassword(req.Password)
+	hashed, err := crypto.HashPassword(req.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -84,7 +85,7 @@ func (s *authService) Login(req LoginRequestDto, userAgent, clientIP string) (*L
 		return nil, NewObjectNotFoundError("user", "email", req.Email)
 	}
 
-	isPasswordValid := ComparePassword(existingUser.PasswordHash, []byte(req.Password))
+	isPasswordValid := crypto.ComparePassword(existingUser.PasswordHash, []byte(req.Password))
 	if !isPasswordValid {
 		return nil, NewInvalidCredentialsError("password")
 	}
@@ -319,7 +320,7 @@ func (s *authService) ResetPassword(email, token, newPassword string) (*ResetPas
 		return nil, fmt.Errorf("user with email %s does not exist", email)
 	}
 
-	hashedPassword, err := HashPassword(newPassword)
+	hashedPassword, err := crypto.HashPassword(newPassword)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash the new password: %w", err)
 	}

@@ -3,7 +3,7 @@ package user
 import (
 	"fmt"
 
-	"github.com/AyKrimino/ScribeHost/internal/auth"
+	"github.com/AyKrimino/ScribeHost/internal/infra/crypto"
 )
 
 type UserService interface {
@@ -26,7 +26,7 @@ func (s *userService) CreateUser(userReq CreateUserRequestDto) (*UserResponseDto
 		return nil, fmt.Errorf("conversion error: %w", err)
 	}
 
-	hashed, err := auth.HashPassword(userReq.Password)
+	hashed, err := crypto.HashPassword(userReq.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
