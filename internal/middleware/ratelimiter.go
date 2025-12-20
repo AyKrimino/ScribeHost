@@ -72,7 +72,7 @@ func RateLimiter(endpoint string) gin.HandlerFunc {
 
 		key := fmt.Sprintf("rate_limit:%s:%s:%s", endpoint, rateLimit.rateLimitKey, identifier)
 
-		c := context.Background()
+		c := ctx.Request.Context()
 		val, err := redisClient.Get(c, key).Result()
 		if err != nil && err != redis.Nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
