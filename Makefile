@@ -8,7 +8,7 @@ PROD_ENV=.env.production
 build:
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BINARY_DIR)
-	go build -o $(BINARY_PATH) server.go
+	go build -o $(BINARY_PATH) cmd/scribehost/main.go
 	@echo "Build complete."
 
 run: build
@@ -18,7 +18,7 @@ run: build
 dev:
 	@echo "Starting development server with Air..."
 	@which air > /dev/null || (echo "Error: 'air' not found. Install it with 'go install github.com/air-verse/air@latest'"; exit 1)
-	air
+	air -c .air.toml
 
 # Usage: make migrate-create name=your_migration_name
 migrate-create:
